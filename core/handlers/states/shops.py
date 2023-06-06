@@ -1,4 +1,3 @@
-import asyncio
 import re
 from decimal import Decimal
 
@@ -8,23 +7,36 @@ from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
 from core.keyboards.inline import getKeyboard_shop_remove, getKeyboard_shop_add, getKeyboard_shop_change_currency_price, \
-    getKeyboard_start
-from core.oneC.api import Api
+    getKeyboard_start, getKeyboad_select_countries, getKeyboad_select_cities
+from core.oneC.oneC import *
 from core.utils import texts
-from core.utils.callbackdata import RemoveShop, AddShop, CurrencyOneShop
+from core.utils.callbackdata import RemoveShop, AddShop, CurrencyOneShop, City, Country
 from core.utils.states import OneShopCurrency
 
 
-async def start_add_shop(call: CallbackQuery, state: FSMContext):
+async def select_country(call: CallbackQuery):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info(f'Нажали кнопку "Прикрепить магазин"')
+    countries = await get_unique_countryes()
+    await call.message.edit_text("Выберите страну", reply_markup=getKeyboad_select_countries(countries))
+
+
+async def select_city(call: CallbackQuery, callback_data: Country):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info(f'Выбрал страну "{callback_data.code}"')
+    cities = await get_cities_by_country_code(callback_data.code)
+    await call.message.edit_text("Выберите город", reply_markup=getKeyboad_select_cities(cities))
+
+
+async def start_add_shop(call: CallbackQuery, state: FSMContext, callback_data: City):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info('Нажали "Прикрепить магазин"')
     data = await state.get_data()
     response, all_shops = await Api().get_all_shops()
     if response.ok:
-        shops = [[shop['Наименование'], shop['id']] for shop in all_shops if
-                 shop['id'] not in [s[1] for s in data.get('shops')]]
-        await call.message.edit_text('Выберите магазин',
-                                     reply_markup=getKeyboard_shop_add(shops, data.get('user_id'), data.get('addShops')))
+        shops = await get_shops_by_city_code(callback_data.code)
+        await call.message.edit_text('Выберите магазин', reply_markup=getKeyboard_shop_add(shops, data.get('user_id'), data.get('addShops')))
+        await state.update_data(cityCode=callback_data.code)
     else:
         log.error(f'Код ответа сервера: {response.status}')
         await call.message.answer(await texts.error_server(response.status))
@@ -46,17 +58,13 @@ async def select_add_shop(call: CallbackQuery, state: FSMContext, callback_data:
             addShops.remove(callback_data.shop_id)
             await state.update_data(addShops=addShops)
 
-    response_all_shops, all_shops = await Api().get_all_shops()
-    shops = [[shop['Наименование'], shop['id']]
+    all_shops = await get_shops_by_city_code(data['cityCode'])
+    shops = [shop
              for shop in all_shops
-             if shop['id'] not in [s[1] for s in data.get('shops')]]
-    shop_name = [shop['Наименование'] for shop in all_shops if shop['id'] == shop_id][0]
+             if shop.code not in [s[1] for s in data.get('shops')]]
+    shop_name = [shop.name for shop in all_shops if shop.code == shop_id][0]
     log.info(f'Выбрали магазин "{shop_name}"')
-    if response_all_shops.ok:
-        await call.message.edit_reply_markup(reply_markup=getKeyboard_shop_add(shops=shops, user_id=user_id, addShop=addShops))
-    else:
-        await call.message.answer(await texts.error_server(response_all_shops.status))
-        log.error(f'Магазин "{shop_name}" не прикреплён. Код ответа сервера: {response_all_shops.status}')
+    await call.message.edit_reply_markup(reply_markup=getKeyboard_shop_add(shops=shops, user_id=user_id, addShop=addShops))
 
 
 async def add_shops(call: CallbackQuery, state: FSMContext):

@@ -20,8 +20,10 @@ class Api:
             async with session.post(f"{self.adress}/CreateKontr", data=json.dumps(data)) as response:
                 return response, await response.text()
 
-    async def create_shop(self, name, inn, kontragent_id, currency, currency_price):
+    async def create_shop(self, name, inn, kontragent_id, currency, currency_price, cityCode, countryCode):
         """
+        :param countryCode: Код страны
+        :param cityCode: Код города
         :param name: Название магазина
         :param inn: ИНН магазина
         :param kontragent_id: id контрагента
@@ -29,7 +31,7 @@ class Api:
         :param currency_price: Стоимость валюты
         :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера
         """
-        data = {"Sklad": name, "Org": inn, "Контр": kontragent_id, "Valut": currency, "KursPrice": currency_price}
+        data = {"Sklad": name, "Org": inn, "Контр": kontragent_id, "Valut": currency, "KursPrice": currency_price, "KodGorod": cityCode, "KodStrana": countryCode}
         async with aiohttp.ClientSession() as session:
             async with session.post(f"{self.adress}/CreateTT", data=json.dumps(data)) as response:
                 return response, await response.text()

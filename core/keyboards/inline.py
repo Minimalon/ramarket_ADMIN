@@ -9,7 +9,8 @@ oneC = Api()
 def getKeyboard_start():
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='Изменить стоимость курса', callback_data='changeCurrencyPrice')
-    keyboard.button(text='Создать магазин', callback_data='createShop')
+    keyboard.button(text='Создать магазин', callback_data='startCreateShop')
+    keyboard.button(text='История продаж магазина', callback_data='historyOrders')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -27,6 +28,7 @@ async def getKeyboard_contacts(contacts):
 def getKeyboard_contact_true():
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='Операции с магазинами', callback_data='storeFunctions')
+    keyboard.button(text='История продаж', callback_data='historyOrdersOneUser')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -46,6 +48,30 @@ def getKeyboard_select_admin():
     return keyboard.as_markup()
 
 
+def getKeyboad_select_countries(countries):
+    keyboard = InlineKeyboardBuilder()
+    for country in countries:
+        keyboard.button(text=country.name, callback_data=Country(code=country.code))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
+def getKeyboad_select_cities(cities):
+    keyboard = InlineKeyboardBuilder()
+    for city in cities:
+        keyboard.button(text=city.name, callback_data=City(code=city.code))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
+def getKeyboad_select_shop(shops):
+    keyboard = InlineKeyboardBuilder()
+    for shop in shops:
+        keyboard.button(text=shop.name, callback_data=Shops(code=shop.code))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
 def getKeyboard_currencies():
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='USDV', callback_data=CurrencyAll(currency='USDV'))
@@ -61,7 +87,7 @@ async def getKeyboard_kontragent():
     return keyboard.as_markup()
 
 
-async def getKeyboard_createShop():
+def getKeyboard_createShop():
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='Создать магазин', callback_data='createShop')
     keyboard.adjust(1, repeat=True)
@@ -97,11 +123,11 @@ def getKeyboard_shop_add(shops, user_id, addShop=None):
     if addShop is None:
         addShop = []
     keyboard = InlineKeyboardBuilder()
-    for shop_name, shop_id in shops[:98]:
-        if shop_id in addShop:
-            keyboard.button(text=f"{shop_name} ✅", callback_data=AddShop(user_id=user_id, shop_id=shop_id))
-        elif shop_id not in addShop:
-            keyboard.button(text=shop_name, callback_data=AddShop(user_id=user_id, shop_id=shop_id))
+    for shop in shops:
+        if shop.code in addShop:
+            keyboard.button(text=f"{shop.name} ✅", callback_data=AddShop(user_id=user_id, shop_id=shop.code))
+        elif shop.code not in addShop:
+            keyboard.button(text=shop.name, callback_data=AddShop(user_id=user_id, shop_id=shop.code))
     keyboard.button(text="⬅️", callback_data='storeFunctions')
     if len(addShop) > 0:
         keyboard.button(text="Прикрепить", callback_data='addShops')

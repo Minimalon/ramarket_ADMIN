@@ -33,3 +33,15 @@ class Kontragent(CallbackData, prefix='kontragent'):
 
 class SavedContact(CallbackData, prefix='savedContact'):
     phone: str
+
+
+class Country(CallbackData, prefix='country'):
+    code: str
+
+
+class City(CallbackData, prefix='city'):
+    code: str
+
+
+class Shops(CallbackData, prefix='shops'):
+    code: str

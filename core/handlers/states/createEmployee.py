@@ -42,10 +42,11 @@ async def final_create_empliyee(message: Message, state: FSMContext):
         await save_phone(str(message.chat.id), phone)
         employee = await oneC.get_employeeInfo(phone)
         if employee:
+            log.success(f'Создан сотрудник')
             await state.set_state(Contact.menu)
             shops = [[i['Магазин'], i['idМагазин']] for i in employee["Магазины"]]
             user_id = employee['id']
-            await state.update_data(shops=shops, user_id=user_id)
+            await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'])
             text = await texts.employee_true(employee, phone)
             await message.answer(text, reply_markup=getKeyboard_contact_true())
         else:

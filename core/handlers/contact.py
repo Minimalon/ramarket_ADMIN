@@ -19,7 +19,7 @@ async def get_contact(message: Message, state: FSMContext):
         await save_phone(str(message.chat.id), texts.phone(message.contact.phone_number))
         shops = [[i['Магазин'], i['idМагазин']] for i in employee["Магазины"]]
         user_id = employee['id']
-        await state.update_data(shops=shops, user_id=user_id)
+        await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'])
         log.info('Сотрудник найден в базе 1С')
         text = await texts.employee_true(employee, phone)
         await message.answer(text, reply_markup=getKeyboard_contact_true())
@@ -27,7 +27,6 @@ async def get_contact(message: Message, state: FSMContext):
         log.error('Сотрудник не найден в базе 1С')
         text = f"Данный контакт '<code>{phone}</code>' не зарегистрирован"
         await message.answer(text, reply_markup=getKeyboard_contact_false(phone))
-        await message.answer(text)
 
 
 async def get_saved_contact(call: CallbackQuery, state: FSMContext, callback_data: SavedContact):
@@ -38,7 +37,7 @@ async def get_saved_contact(call: CallbackQuery, state: FSMContext, callback_dat
         await state.set_state(Contact.menu)
         shops = [[i['Магазин'], i['idМагазин']] for i in employee["Магазины"]]
         user_id = employee['id']
-        await state.update_data(shops=shops, user_id=user_id)
+        await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'])
         log.info('Сотрудник найден в базе 1С')
         text = await texts.employee_true(employee, phone)
         await call.message.edit_text(text, reply_markup=getKeyboard_contact_true())

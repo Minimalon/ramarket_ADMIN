@@ -29,3 +29,8 @@ class CreateShop(StatesGroup):
 class StatesCreateEmployee(StatesGroup):
     admin = State()
     name = State()
+
+class HistoryOrders(StatesGroup):
+    country = State()
+    city = State()
+    shops = State()

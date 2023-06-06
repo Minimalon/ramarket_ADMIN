@@ -15,7 +15,7 @@ from core.database.model import init_models
 from core.handlers import contact
 from core.handlers.basic import get_start, video_tutorial, contacts
 from core.handlers.callback import *
-from core.handlers.states import shops, createShop, addContact,createEmployee
+from core.handlers.states import shops, createShop, addContact, createEmployee, historyOrders
 from core.handlers.states.updateCurrencyPriceAll import get_price, update_price
 from core.middlewares.checkReg import CheckRegistrationCallbackMiddleware, CheckRegistrationMessageMiddleware
 from core.utils.callbackdata import *
@@ -59,15 +59,26 @@ async def start():
 
     # Главное меню
     dp.callback_query.register(select_currency, F.data == 'changeCurrencyPrice')
-    dp.callback_query.register(createShop.select_currency, F.data == 'createShop')
+    dp.callback_query.register(createShop.select_currency, F.data == 'startCreateShop')
+    dp.callback_query.register(historyOrders.select_country, F.data == 'historyOrders')
+
+    # История продаж по магазину
+    dp.callback_query.register(historyOrders.select_city, Country.filter(), HistoryOrders.country)
+    dp.callback_query.register(historyOrders.select_shop, City.filter(), HistoryOrders.city)
+    dp.callback_query.register(historyOrders.send_history, Shops.filter(), HistoryOrders.shops)
+
+    # История продаж по пользователю
+    dp.callback_query.register(historyOneUser, F.data == 'historyOrdersOneUser')
 
     # Создание магазина
     dp.callback_query.register(createShop.select_kontagent, CurrencyAll.filter(), CreateShop.currencies)
-    dp.callback_query.register(createShop.enter_shop_name, Kontragent.filter(), CreateShop.kontragent)
+    dp.callback_query.register(createShop.select_country, Kontragent.filter(), CreateShop.kontragent)
+    dp.callback_query.register(createShop.select_city, Country.filter(), CreateShop.kontragent)
+    dp.callback_query.register(createShop.enter_shop_name, City.filter(), CreateShop.kontragent)
     dp.message.register(createShop.enter_org_inn, CreateShop.name)
     dp.message.register(createShop.enter_shop_currency_price, CreateShop.org)
     dp.message.register(createShop.final, CreateShop.currency_price)
-    dp.callback_query.register(createShop.final, CreateShop.currency_price)
+    dp.callback_query.register(createShop.createShop, F.data == 'createShop')
 
     # Изменить стоимость курса у всех магазинов
     dp.callback_query.register(get_price, CurrencyAll.filter())
@@ -80,7 +91,9 @@ async def start():
     dp.callback_query.register(shops.select_remove_shop, RemoveShop.filter())
     dp.callback_query.register(shops.remove_shops, F.data == 'removeShops')
     # Прикрепить магазин контакту
-    dp.callback_query.register(shops.start_add_shop, F.data == 'add_shop')
+    dp.callback_query.register(shops.select_country, F.data == 'add_shop')
+    dp.callback_query.register(shops.select_city, Country.filter(), Contact.menu)
+    dp.callback_query.register(shops.start_add_shop, City.filter(), Contact.menu)
     dp.callback_query.register(shops.select_add_shop, AddShop.filter())
     dp.callback_query.register(shops.add_shops, F.data == 'addShops')
     # Изменить стоимость курса у одного магазина

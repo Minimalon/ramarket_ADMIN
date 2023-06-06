@@ -39,7 +39,7 @@ async def send_history(call: CallbackQuery, callback_data: Shops, state: FSMCont
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'Выбрал магазин "{callback_data.code}"')
     shop_info = await get_shop_by_id(callback_data.code)
-    path = await create_excel_by_shop_id(callback_data.code)
+    path = await create_excel_by_shop_id(callback_data.code, shop_info.name)
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
         await state.clear()

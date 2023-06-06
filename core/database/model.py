@@ -18,7 +18,7 @@ class Clients(Base):
     user_id = Column(String(50), nullable=False, primary_key=True)
     chat_id = Column(String(50), nullable=False)
     language = Column(String(3), nullable=False, default='ru')
-    phones = Column(String(500), nullable=False)
+    phones = Column(String(500))
     admin = Column(Boolean, default=False)
 
 

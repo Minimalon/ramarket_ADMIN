@@ -27,7 +27,7 @@ async def create_excel_by_agent_id(agent_id: str, agent_name: str):
         engine = create_engine(f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
         df = pd.read_sql(query, engine.connect())
         df['date'] = df['date'].dt.tz_localize(None)
-        df = df.drop(columns=['chat_id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
+        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
         df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
         for column in df:
@@ -51,7 +51,7 @@ async def create_excel_by_shop_id(shop_id: str, shop_name: str):
         engine = create_engine(f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
         df = pd.read_sql(query, engine.connect())
         df['date'] = df['date'].dt.tz_localize(None)
-        df = df.drop(columns=['chat_id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
+        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
         df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
         for column in df:

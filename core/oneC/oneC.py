@@ -25,7 +25,7 @@ async def get_unique_countryes():
     turple = namedtuple('Country', 'name code')
     response, all_shops = await api.get_all_shops()
     for shop in all_shops:
-        if not shop['КодСтраны'] or not shop["Страна"]:
+        if not shop['КодГород'] or not shop["КодСтраны"] or shop['Город'] == "Удалить" or shop['Страна'] == "Удалить":
             continue
         elif shop['КодСтраны'] not in [i.code for i in countryes]:
             countryes.append(turple(shop["Страна"], shop['КодСтраны']))
@@ -41,7 +41,7 @@ async def get_unique_cities():
     turple = namedtuple('City', 'name code')
     response, all_shops = await api.get_all_shops()
     for shop in all_shops:
-        if not shop['КодГород'] or not shop["Город"]:
+        if not shop['КодГород'] or not shop["КодСтраны"] or shop['Город'] == "Удалить" or shop['Страна'] == "Удалить":
             continue
         elif shop['КодГород'] not in [i.code for i in cities]:
             cities.append(turple(shop["Город"], shop['КодГород']))
@@ -58,7 +58,7 @@ async def get_cities_by_country_code(code: str):
     cities = []
     turple = namedtuple('City', 'name code')
     for shop in all_shops:
-        if not shop['КодГород'] or not shop["КодСтраны"]:
+        if not shop['КодГород'] or not shop["КодСтраны"] or shop['Город'] == "Удалить" or shop['Страна'] == "Удалить":
             continue
         if shop['КодСтраны'] == code and shop['КодГород'] not in [i.code for i in cities]:
             cities.append(turple(shop["Город"], shop['КодГород']))
@@ -75,7 +75,7 @@ async def get_shops_by_city_code(code: str):
     shops = []
     turple = namedtuple('Shop', 'name code')
     for shop in all_shops:
-        if not shop['КодГород'] or not shop["КодСтраны"]:
+        if not shop['КодГород'] or not shop["КодСтраны"] or shop['Город'] == "Удалить" or shop['Страна'] == "Удалить":
             continue
         if shop['КодГород'] == code and shop['КодГород'] not in (i.code for i in shops):
             shops.append(turple(shop["Наименование"], shop['id']))

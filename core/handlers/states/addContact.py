@@ -33,4 +33,3 @@ async def add_phone(message: Message, state: FSMContext):
         log.error('Сотрудник не найден в базе 1С')
         text = f"Данный контакт '<code>{phone}</code>' не зарегистрирован"
         await message.answer(text, reply_markup=getKeyboard_contact_false(phone))
-    await state.clear()

@@ -25,6 +25,23 @@ async def getKeyboard_contacts(contacts):
     return keyboard.as_markup()
 
 
+async def getKeyboard_delete_contacts(contacts, to_delete=None):
+    if not to_delete:
+        to_delete = []
+    keyboard = InlineKeyboardBuilder()
+    if contacts:
+        for contact in contacts:
+            name = (await oneC.get_client_info(contact))['Наименование']
+            if contact in to_delete:
+                keyboard.button(text=f'{name} ✅', callback_data=DeleteContact(phone=contact))
+            else:
+                keyboard.button(text=name, callback_data=DeleteContact(phone=contact))
+    if len(to_delete) > 0:
+        keyboard.button(text="Удалить 🗑", callback_data='deleteContacts')
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
 def getKeyboard_contact_true():
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='Операции с магазинами', callback_data='storeFunctions')

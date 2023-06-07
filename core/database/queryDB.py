@@ -40,7 +40,7 @@ async def save_phone(chat_id: str, phone: str):
     async with async_session() as session:
         q = await session.execute(select(Clients).filter(Clients.chat_id == chat_id))
         client = q.scalars().first()
-        if client.phones is None:
+        if client.phones is None or not client.phones:
             await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=phone))
         else:
             phones = client.phones.split(',')
@@ -56,4 +56,31 @@ async def get_saved_phones(chat_id: str):
         client = q.scalars().first()
         if client.phones is None:
             return False
+        elif not client.phones:
+            return False
         return client.phones.split(',')
+
+
+async def delete_saved_phones(chat_id: str, phones_to_delete: list):
+    async with async_session() as session:
+        q = await session.execute(select(Clients).filter(Clients.chat_id == chat_id))
+        client = q.scalars().first()
+        if client.phones is None:
+            return False
+        elif not client.phones:
+            return False
+        result = []
+        client_phones = client.phones.split(',')
+
+        for phone in client_phones:
+            if phone not in phones_to_delete:
+                result.append(phone)
+        if len(client_phones) == 1 and len(phones_to_delete) == 1:
+            await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=None))
+        elif len(client_phones) - len(result) > 1:
+            await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=','.join(result)))
+        elif len(client_phones) - len(result) == 1:
+            await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=result[0]))
+        else:
+            await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=None))
+        await session.commit()

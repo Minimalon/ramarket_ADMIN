@@ -3,9 +3,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile
 from loguru import logger
 
+from core.database.queryDB import delete_saved_phones, get_saved_phones
 from core.database.ramarket_shop.db_shop import create_excel_by_agent_id
-from core.keyboards.inline import getKeyboard_currencies, getKeyboard_shop_functions
+from core.handlers.basic import contacts
+from core.keyboards.inline import getKeyboard_currencies, getKeyboard_shop_functions, getKeyboard_delete_contacts
 from core.utils import texts
+from core.utils.callbackdata import DeleteContact
 
 
 async def select_currency(call: CallbackQuery):
@@ -27,3 +30,30 @@ async def historyOneUser(call: CallbackQuery, state: FSMContext, bot: Bot):
     else:
         await call.message.answer(texts.error_head + "Данный сотрудник еще не делал продаж")
         await call.answer()
+
+
+async def select_to_delete_contacts(call: CallbackQuery, state: FSMContext, callback_data: DeleteContact):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info(f'Выбрали пользователя на удаление "{callback_data.phone}"')
+    data = await state.get_data()
+    if not data.get('to_delete'):
+        to_delete = callback_data.phone
+        await state.update_data(to_delete=[callback_data.phone])
+    else:
+        to_delete = data.get('to_delete')
+        if callback_data.phone in to_delete:
+            to_delete.remove(callback_data.phone)
+        else:
+            to_delete.append(callback_data.phone)
+        await state.update_data(to_delete=to_delete)
+    contacts = await get_saved_phones(chat_id=str(call.message.chat.id))
+    await call.message.edit_text("Выберите пользователя на удаление", reply_markup=await getKeyboard_delete_contacts(contacts, to_delete))
+
+
+async def delete_contacts(call: CallbackQuery, state: FSMContext):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    data = await state.get_data()
+    log.info(f'Удалили пользователей "{data.get("to_delete")}"')
+    await delete_saved_phones(str(call.message.chat.id), data.get('to_delete'))
+    await state.update_data(to_delete=None)
+    await call.message.edit_text(f'Пользователи удалены "<code>{",".join(data.get("to_delete"))}</code>"')

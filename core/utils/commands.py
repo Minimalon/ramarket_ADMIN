@@ -20,5 +20,9 @@ async def get_commands(bot: Bot):
             command='add_contact',
             description='Добавить контакт'
         ),
+        BotCommand(
+            command='delete_contacts',
+            description='Удалить контакты'
+        ),
     ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())

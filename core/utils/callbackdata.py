@@ -35,6 +35,10 @@ class SavedContact(CallbackData, prefix='savedContact'):
     phone: str
 
 
+class DeleteContact(CallbackData, prefix='deleteContact'):
+    phone: str
+
+
 class Country(CallbackData, prefix='country'):
     code: str
 

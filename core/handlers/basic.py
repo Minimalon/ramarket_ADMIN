@@ -1,13 +1,14 @@
 import os.path
 
-import config
-from core.database import queryDB
-from core.database.queryDB import get_saved_phones
-from core.utils import texts
-from aiogram.types import Message, FSInputFile
 from aiogram import Bot
-from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts
+from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, FSInputFile
+
+import config
+from core.database.queryDB import get_saved_phones
+from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts, getKeyboard_delete_contacts
 from core.oneC.api import Api
+from core.utils import texts
 
 oneC = Api()
 
@@ -29,3 +30,10 @@ async def contacts(message: Message):
         await message.answer(texts.error_head + "Вы еще не присылали ни одного контакта")
 
 
+async def start_delete_contacts(message: Message, state: FSMContext):
+    contacts = await get_saved_phones(chat_id=str(message.chat.id))
+    await state.update_data(to_delete=[])
+    if contacts:
+        await message.answer("Выберите пользователя на удаление", reply_markup=await getKeyboard_delete_contacts(contacts))
+    else:
+        await message.answer(texts.error_head + "Вы еще не присылали ни одного контакта")

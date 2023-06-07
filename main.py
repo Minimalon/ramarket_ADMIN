@@ -4,23 +4,24 @@
 import asyncio
 import os
 
+from loguru import logger
+
 import aiogram.exceptions
-from aiogram import Bot, Dispatcher, F
+from aiogram import Dispatcher, F, Bot
 from aiogram.filters import Command
 from aiogram.fsm.storage.redis import RedisStorage
-from loguru import logger
 
 import config
 from core.database.model import init_models
 from core.handlers import contact
-from core.handlers.basic import get_start, video_tutorial, contacts
-from core.handlers.callback import *
+from core.handlers.basic import get_start, video_tutorial, contacts, start_delete_contacts
+from core.handlers.callback import select_to_delete_contacts, select_currency, historyOneUser, delete_contacts, functions_shop
 from core.handlers.states import shops, createShop, addContact, createEmployee, historyOrders
 from core.handlers.states.updateCurrencyPriceAll import get_price, update_price
 from core.middlewares.checkReg import CheckRegistrationCallbackMiddleware, CheckRegistrationMessageMiddleware
-from core.utils.callbackdata import *
+from core.utils.callbackdata import SavedContact, DeleteContact, CreateEmployee, EmployeeAdmin, Country, City, Shops, CurrencyAll, Kontragent, RemoveShop, AddShop, CurrencyOneShop
 from core.utils.commands import get_commands
-from core.utils.states import *
+from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrders, CreateShop, UpdateCurrencyPriceAll, Contact, OneShopCurrency
 
 
 @logger.catch()
@@ -46,10 +47,14 @@ async def start():
     dp.message.register(video_tutorial, Command(commands=['help']))
     dp.message.register(contacts, Command(commands=['contacts']))
     dp.message.register(addContact.enter_phone, Command(commands=['add_contact']))
+    dp.message.register(start_delete_contacts, Command(commands=['delete_contacts']))
 
     # Сохранённые пользователи
     dp.callback_query.register(contact.get_saved_contact, SavedContact.filter())
     dp.message.register(addContact.add_phone, AddPhone.phone)
+    # Удалить сохранённых пользователей
+    dp.callback_query.register(select_to_delete_contacts, DeleteContact.filter())
+    dp.callback_query.register(delete_contacts, F.data == 'deleteContacts')
     # Регистрация контакта
     dp.message.register(contact.get_contact, F.contact)
     # Создание нового сотрудника

@@ -60,6 +60,15 @@ class Api:
             async with session.post(f"{self.adress}/ChangeKursV", data=json.dumps(data)) as response:
                 return response, await response.text()
 
+    async def get_all_orgs(self):
+        """
+        Список всех организаций
+        :return: JSON
+        """
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{self.adress}/GetOrg") as response:
+                return response, await response.json()
+
     async def get_all_shops(self):
         """
         Список всех магазинов в 1С
@@ -67,6 +76,15 @@ class Api:
         """
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{self.adress}/GetTTAll") as response:
+                return response, await response.json()
+
+    async def get_all_users(self):
+        """
+        Список всех пользователей в 1С
+        :return: JSON
+        """
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{self.adress}/GetUPAll") as response:
                 return response, await response.json()
 
     async def get_all_kontragents(self):

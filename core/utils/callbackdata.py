@@ -9,7 +9,7 @@ class CreateEmployee(CallbackData, prefix='employee'):
     phone: str
 
 
-class CurrencyAll(CallbackData, prefix='currencyAll'):
+class Currencyes(CallbackData, prefix='currencyAll'):
     currency: str
 
 
@@ -35,6 +35,10 @@ class SavedContact(CallbackData, prefix='savedContact'):
     phone: str
 
 
+class DeleteUsers(CallbackData, prefix='deleteUsers'):
+    id: str
+
+
 class DeleteContact(CallbackData, prefix='deleteContact'):
     phone: str
 
@@ -44,6 +48,10 @@ class Country(CallbackData, prefix='country'):
 
 
 class City(CallbackData, prefix='city'):
+    code: str
+
+
+class Org(CallbackData, prefix='org'):
     code: str
 
 

@@ -6,7 +6,7 @@ from aiogram.types import Message, FSInputFile
 
 import config
 from core.database.queryDB import get_saved_phones
-from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts, getKeyboard_delete_contacts
+from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts, getKeyboard_delete_contacts, getKeyboard_all_contacts, getKeyboard_start_delete_users
 from core.oneC.api import Api
 from core.utils import texts
 
@@ -28,6 +28,22 @@ async def contacts(message: Message):
         await message.answer("Выберите нужного пользователя", reply_markup=await getKeyboard_contacts(contacts))
     else:
         await message.answer(texts.error_head + "Вы еще не присылали ни одного контакта")
+
+
+async def all_users(message: Message):
+    response, contacts = await oneC.get_all_users()
+    if response.ok:
+        await message.answer("Выберите нужного пользователя", reply_markup=await getKeyboard_all_contacts(contacts))
+    else:
+        await message.answer(await texts.error_server(response))
+
+
+async def start_delete_users(message: Message):
+    response, contacts = await oneC.get_all_users()
+    if response.ok:
+        await message.answer("Выберите нужного пользователя для удаления", reply_markup=await getKeyboard_start_delete_users(contacts))
+    else:
+        await message.answer(await texts.error_server(response))
 
 
 async def start_delete_contacts(message: Message, state: FSMContext):

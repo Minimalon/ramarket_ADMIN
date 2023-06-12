@@ -25,6 +25,49 @@ async def getKeyboard_contacts(contacts):
     return keyboard.as_markup()
 
 
+async def getKeyboard_filters_history_orders():
+    keyboard = InlineKeyboardBuilder()
+    keyboard.button(text='За всё время', callback_data='history_all_days')
+    keyboard.button(text='Промежуток времени', callback_data='history_period')
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
+async def getKeyboard_start_delete_users(contacts):
+    keyboard = InlineKeyboardBuilder()
+    if contacts:
+        for contact in contacts:
+            keyboard.button(text=contact['Наименование'], callback_data=DeleteUsers(id=contact['id']))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
+async def getKeyboard_all_contacts(contacts):
+    keyboard = InlineKeyboardBuilder()
+    if contacts:
+        for contact in contacts:
+            keyboard.button(text=contact['Наименование'], callback_data=SavedContact(phone=contact['Телефон']))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
+async def getKeyboard_delete_users(contacts, to_delete=None):
+    if not to_delete:
+        to_delete = []
+    keyboard = InlineKeyboardBuilder()
+    if contacts:
+        for contact in contacts:
+            name = (await oneC.get_client_info(contact))['Наименование']
+            if contact in to_delete:
+                keyboard.button(text=f'{name} ✅', callback_data=DeleteUsers(id=contact))
+            else:
+                keyboard.button(text=name, callback_data=DeleteUsers(id=contact))
+    if len(to_delete) > 0:
+        keyboard.button(text="Удалить 🗑", callback_data='deleteUsers')
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
 async def getKeyboard_delete_contacts(contacts, to_delete=None):
     if not to_delete:
         to_delete = []
@@ -73,6 +116,14 @@ def getKeyboad_select_countries(countries):
     return keyboard.as_markup()
 
 
+def getKeyboad_orgs(orgs):
+    keyboard = InlineKeyboardBuilder()
+    for org in orgs:
+        keyboard.button(text=org.name, callback_data=Org(code=org.code))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
 def getKeyboad_select_cities(cities):
     keyboard = InlineKeyboardBuilder()
     for city in cities:
@@ -91,7 +142,7 @@ def getKeyboad_select_shop(shops):
 
 def getKeyboard_currencies():
     keyboard = InlineKeyboardBuilder()
-    keyboard.button(text='USDV', callback_data=CurrencyAll(currency='USDV'))
+    keyboard.button(text='USDV', callback_data=Currencyes(currency='USDV'))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 

@@ -7,24 +7,35 @@ from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
 from core.keyboards.inline import getKeyboard_shop_remove, getKeyboard_shop_add, getKeyboard_shop_change_currency_price, \
-    getKeyboard_start, getKeyboad_select_countries, getKeyboad_select_cities
+    getKeyboard_start, getKeyboad_select_countries, getKeyboad_select_cities, getKeyboad_orgs
 from core.oneC.oneC import *
 from core.utils import texts
-from core.utils.callbackdata import RemoveShop, AddShop, CurrencyOneShop, City, Country
+from core.utils.callbackdata import RemoveShop, AddShop, CurrencyOneShop, City, Country, Org
 from core.utils.states import OneShopCurrency
 
 
-async def select_country(call: CallbackQuery):
+async def select_org(call: CallbackQuery):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'Нажали кнопку "Прикрепить магазин"')
-    countries = await get_unique_countryes()
-    await call.message.edit_text("Выберите страну", reply_markup=getKeyboad_select_countries(countries))
+    await call.message.edit_text("Выберите юридическое лицо", reply_markup=getKeyboad_orgs(await get_orgs()))
 
 
-async def select_city(call: CallbackQuery, callback_data: Country):
+async def select_country(call: CallbackQuery, state: FSMContext, callback_data: Org):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info(f'Выбрал организацию "{callback_data.code}"')
+    await state.update_data(org_id=callback_data.code)
+    countries = await get_unique_countryes(callback_data.code)
+    if countries:
+        await call.message.edit_text("Выберите страну", reply_markup=getKeyboad_select_countries(countries))
+    else:
+        await call.message.answer('У данного юридического лица нет зарегистрированных магазинов')
+
+
+async def select_city(call: CallbackQuery, state: FSMContext, callback_data: Country):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'Выбрал страну "{callback_data.code}"')
-    cities = await get_cities_by_country_code(callback_data.code)
+    data = await state.get_data()
+    cities = await get_cities_by_country_code(callback_data.code, data['org_id'])
     await call.message.edit_text("Выберите город", reply_markup=getKeyboad_select_cities(cities))
 
 
@@ -34,7 +45,7 @@ async def start_add_shop(call: CallbackQuery, state: FSMContext, callback_data: 
     data = await state.get_data()
     response, all_shops = await Api().get_all_shops()
     if response.ok:
-        shops = await get_shops_by_city_code(callback_data.code)
+        shops = await get_shops_by_city_code_and_org_id(callback_data.code, data['org_id'])
         await call.message.edit_text('Выберите магазин', reply_markup=getKeyboard_shop_add(shops, data.get('user_id'), data.get('addShops')))
         await state.update_data(cityCode=callback_data.code)
     else:
@@ -58,7 +69,7 @@ async def select_add_shop(call: CallbackQuery, state: FSMContext, callback_data:
             addShops.remove(callback_data.shop_id)
             await state.update_data(addShops=addShops)
 
-    all_shops = await get_shops_by_city_code(data['cityCode'])
+    all_shops = await get_shops_by_city_code_and_org_id(data['cityCode'], data['org_id'])
     shops = [shop
              for shop in all_shops
              if shop.code not in [s[1] for s in data.get('shops')]]

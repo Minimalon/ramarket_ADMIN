@@ -38,7 +38,15 @@ async def create_excel_by_agent_id(agent_id: str, agent_name: str):
         return path_file
 
 
-async def create_excel_by_shop_id(shop_id: str, shop_name: str):
+async def create_excel_by_shop(shop_id: str, shop_name: str, start_date=None, end_date=None):
+    """
+    История продаж магазина, если нету дат, то отдаёт историю продаж за всё время
+    :param shop_id: ID магазина
+    :param shop_name: Имя магазина
+    :param start_date: С какого числа историю продаж
+    :param end_date: По какое число
+    :return: путь к эксель файлу
+    """
     async with async_session() as session:
         q = await session.execute(select(HistoryOrders).filter(HistoryOrders.shop_id == shop_id))
         orders = q.scalars().first()
@@ -47,7 +55,13 @@ async def create_excel_by_shop_id(shop_id: str, shop_name: str):
         path_file = os.path.join(config.dir_path, 'files', 'historyOrders', f"{'_'.join(shop_name.split())}.xlsx")
         if orders is None:
             return False
-        query = text(f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id = \'{shop_id}\' order by date DESC')
+        if start_date and end_date:
+            query = text(
+                f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id = \'{shop_id}\' '
+                f'AND date >= \'{start_date}\' AND date < \'{end_date}\' '
+                f'order by date DESC')
+        else:
+            query = text(f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id = \'{shop_id}\' order by date DESC')
         engine = create_engine(f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
         df = pd.read_sql(query, engine.connect())
         df['date'] = df['date'].dt.tz_localize(None)

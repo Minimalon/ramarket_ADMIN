@@ -84,3 +84,5 @@ async def delete_saved_phones(chat_id: str, phones_to_delete: list):
         else:
             await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=None))
         await session.commit()
+
+

@@ -9,11 +9,11 @@ from loguru import logger
 from core.keyboards.inline import getKeyboard_start
 from core.oneC.api import Api
 from core.utils import texts
-from core.utils.callbackdata import CurrencyAll
+from core.utils.callbackdata import Currencyes
 from core.utils.states import UpdateCurrencyPriceAll
 
 
-async def get_price(call: CallbackQuery, state: FSMContext, callback_data: CurrencyAll):
+async def get_price(call: CallbackQuery, state: FSMContext, callback_data: Currencyes):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info('Нажали кнопку "Изменить стоимость курса"')
     await state.update_data(currency=callback_data.currency)

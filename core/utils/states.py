@@ -30,7 +30,11 @@ class StatesCreateEmployee(StatesGroup):
     admin = State()
     name = State()
 
+
 class HistoryOrders(StatesGroup):
+    org = State()
     country = State()
     city = State()
     shops = State()
+    start_date = State()
+    end_date = State()

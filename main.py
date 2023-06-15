@@ -90,7 +90,7 @@ async def start():
     # История продаж по пользователю
     dp.callback_query.register(select_filter_user_history_orders, F.data == 'historyOrdersOneUser')
     dp.callback_query.register(history_one_user_all_days, F.data == 'orders_user_all_days')
-    dp.callback_query.register(historyOrders.history_shop_orders_by_days, HistoryUserOrdersByDays.filter())
+    dp.callback_query.register(historyOrders.history_user_orders_by_days, HistoryUserOrdersByDays.filter())
     dp.callback_query.register(historyOrders.history_period, F.data == 'history_period_user')
     dp.message.register(historyOrders.start_period, HistoryOrdersUser.start_date)
     dp.message.register(historyOrders.end_period, HistoryOrdersUser.end_date)

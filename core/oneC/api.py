@@ -120,6 +120,16 @@ class Api:
                 data = {"User": f"{user_id}", "Sklad": f"{shop_id}", "Oper": 2}
                 await session.post(f"{self.adress}/ChangeUserParam", data=json.dumps(data))
 
+    async def delete_user(self, user_id: str):
+        """
+        Удаляем пользователя 1С
+        :param user_id: ID юзера 1С
+        :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера
+        """
+        async with aiohttp.ClientSession() as session:
+            data = {"Код": user_id}
+            await session.post(f"{self.adress}/DeleteUser", data=json.dumps(data))
+
     async def change_currency_one_shop(self, shop_id: str, currency_price):
         """
         Меняем стоимость курса у одного магазина

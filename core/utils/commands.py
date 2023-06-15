@@ -36,12 +36,12 @@ async def get_commands_admins(bot: Bot, chat_ids: list):
         ),
         BotCommand(
             command='all_users',
-            description='Все пользователи'
+            description='Все пользователи 1C'
         ),
-        # BotCommand(
-        #     command='delete_users',
-        #     description='Удалить пользователей'
-        # ),
+        BotCommand(
+            command='delete_users',
+            description='Удалить пользователей 1C'
+        ),
         BotCommand(
             command='contacts',
             description='Сохранённые сохраненные контакты'

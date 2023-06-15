@@ -1,5 +1,6 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from core.database.ramarket_shop.db_shop import get_orders_by_1c_id
 from core.oneC.api import Api
 from core.utils.callbackdata import *
 
@@ -46,7 +47,7 @@ async def getKeyboard_all_contacts(contacts):
     keyboard = InlineKeyboardBuilder()
     if contacts:
         for contact in contacts:
-            keyboard.button(text=contact['Наименование'], callback_data=SavedContact(phone=contact['Телефон']))
+            keyboard.button(text=f'{contact.name} | {contact.count_total_orders}', callback_data=SavedContact(phone=contact.phone))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -57,11 +58,10 @@ async def getKeyboard_delete_users(contacts, to_delete=None):
     keyboard = InlineKeyboardBuilder()
     if contacts:
         for contact in contacts:
-            name = (await oneC.get_client_info(contact))['Наименование']
-            if contact in to_delete:
-                keyboard.button(text=f'{name} ✅', callback_data=DeleteUsers(id=contact))
+            if contact['id'] in to_delete:
+                keyboard.button(text=f'{contact["Наименование"]} ✅', callback_data=DeleteUsers(id=contact["id"]))
             else:
-                keyboard.button(text=name, callback_data=DeleteUsers(id=contact))
+                keyboard.button(text=contact["Наименование"], callback_data=DeleteUsers(id=contact["id"]))
     if len(to_delete) > 0:
         keyboard.button(text="Удалить 🗑", callback_data='deleteUsers')
     keyboard.adjust(1, repeat=True)

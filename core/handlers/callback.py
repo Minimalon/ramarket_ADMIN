@@ -1,11 +1,13 @@
+import asyncio
+
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile
 from loguru import logger
 
-from core.database.queryDB import delete_saved_phones, get_saved_phones
+from core.database.queryDB import delete_saved_phones, get_saved_phones, get_all_clients
 from core.database.ramarket_shop.db_shop import create_excel_by_agent_id
-from core.keyboards.inline import getKeyboard_currencies, getKeyboard_shop_functions, getKeyboard_delete_contacts
+from core.keyboards.inline import getKeyboard_currencies, getKeyboard_shop_functions, getKeyboard_delete_contacts, getKeyboard_delete_users
 from core.utils import texts
 from core.utils.callbackdata import DeleteContact, DeleteUsers
 from core.oneC import api
@@ -41,14 +43,14 @@ async def select_to_delete_users(call: CallbackQuery, state: FSMContext, callbac
         to_delete_1c = callback_data.id
         await state.update_data(to_delete_1c=[callback_data.id])
     else:
-        to_delete_1c = data.get('to_delete_1ñ')
+        to_delete_1c = data.get('to_delete_1c')
         if callback_data.id in to_delete_1c:
             to_delete_1c.remove(callback_data.id)
         else:
             to_delete_1c.append(callback_data.id)
         await state.update_data(to_delete_1c=to_delete_1c)
-    contacts = await get_saved_phones(chat_id=str(call.message.chat.id))
-    await call.message.edit_text("Выберите пользователя на удаление", reply_markup=await getKeyboard_delete_contacts(contacts, to_delete_1c))
+    response, contacts = await api.get_all_users()
+    await call.message.edit_text("Выберите пользователя на удаление", reply_markup=await getKeyboard_delete_users(contacts, to_delete_1c))
 
 
 async def select_to_delete_contacts(call: CallbackQuery, state: FSMContext, callback_data: DeleteContact):
@@ -81,9 +83,24 @@ async def delete_contacts(call: CallbackQuery, state: FSMContext):
 async def delete_users(call: CallbackQuery, state: FSMContext):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     data = await state.get_data()
-    log.info(f'Удалили пользователей "{data.get("to_delete_1c")}"')
     response, all_users = await api.get_all_users()
     phones = [_['Телефон'] for _ in all_users if _['id'] in data.get('to_delete_1c')]
-    await delete_saved_phones(str(call.message.chat.id), data.get('to_delete_1c'))
+    for client in await get_all_clients():
+        phones_to_delete = []
+        if client.phones is None:
+            continue
+        for client_phone in client.phones.split(','):
+            if client_phone in phones:
+                phones_to_delete.append(client_phone)
+        if phones_to_delete:
+            await delete_saved_phones(client.user_id, phones_to_delete)
+            log.success(f'Удалил сохранённые контакты {phones_to_delete} у пользователя {client.user_id}')
     await state.update_data(to_delete_1c=None)
-    await call.message.edit_text(f'Пользователи удалены "<code>{",".join(data.get("to_delete_1c"))}</code>"')
+    for user_id in data.get('to_delete_1c'):
+        await api.delete_user(user_id)
+        log.success(f'Удалил пользователя 1С {user_id}')
+    await call.message.edit_text(f'Пользователи удалены "<code>{",".join(phones)}</code>"')
+
+if __name__ == '__main__':
+    a = asyncio.run(get_all_clients())
+    print(a)

@@ -14,6 +14,12 @@ Base = declarative_base()
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
+async def get_orders_by_1c_id(id: str):
+    async with async_session() as session:
+        q = await session.execute(select(HistoryOrders).filter(HistoryOrders.agent_id == id))
+        return q.scalars().all()
+
+
 async def create_excel_by_agent_id(agent_id: str, agent_name: str):
     async with async_session() as session:
         q = await session.execute(select(HistoryOrders).filter(HistoryOrders.agent_id == agent_id))

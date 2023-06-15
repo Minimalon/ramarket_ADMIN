@@ -85,8 +85,8 @@ class CheckRegistrationMessageMiddleware(BaseMiddleware):
             data: dict[str, Any],
     ) -> Any:
         if await checkRegMessage(event):
-            log = logger.bind(chat_id=event.chat.id, first_name=event.chat.first_name, text=event.text)
-            log.info("Отправил сообщение")
+            log = logger.bind(chat_id=event.chat.id, first_name=event.chat.first_name)
+            log.info(f'Отправил сообщение "{event.text}"')
             return await handler(event, data)
 
 

@@ -1,5 +1,8 @@
+import asyncio
+
+import sqlalchemy
 from loguru import logger
-from sqlalchemy import *
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 
@@ -7,7 +10,7 @@ from core.database.model import *
 
 engine = create_async_engine(
     f"postgresql+asyncpg://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database}")
-Base = declarative_base()
+Base = sqlalchemy.orm.declarative_base()
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
@@ -34,6 +37,12 @@ async def get_client_info(**kwargs):
         if client is None:
             return False
         return client
+
+
+async def get_all_clients():
+    async with async_session() as session:
+        q = await session.execute(select(Clients))
+        return q.scalars().all()
 
 
 async def save_phone(chat_id: str, phone: str):
@@ -85,4 +94,7 @@ async def delete_saved_phones(chat_id: str, phones_to_delete: list):
             await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=None))
         await session.commit()
 
-
+if __name__ == '__main__':
+    a = asyncio.run(get_all_clients())
+    for b in a:
+        print(b.phones)

@@ -33,7 +33,7 @@ async def start():
 
     bot = Bot(token=config.token, parse_mode='HTML')
     await get_commands(bot)
-    await get_commands_admins(bot, [323665034, 5263751490])
+    await get_commands_admins(bot, config.admins)
     await init_models()
 
     storage = RedisStorage.from_url(config.redisStorage)

@@ -28,6 +28,9 @@ async def getKeyboard_contacts(contacts):
 
 async def getKeyboard_filters_history_orders():
     keyboard = InlineKeyboardBuilder()
+    keyboard.button(text='Сегодня', callback_data='history_current')
+    keyboard.button(text='7 дней', callback_data=HistoryShopOrdersByDays(days=7))
+    keyboard.button(text='30 дней', callback_data=HistoryShopOrdersByDays(days=30))
     keyboard.button(text='За всё время', callback_data='history_all_days')
     keyboard.button(text='Промежуток времени', callback_data='history_period')
     keyboard.adjust(1, repeat=True)

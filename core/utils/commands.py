@@ -13,12 +13,12 @@ async def get_commands(bot: Bot):
             description='Видео урок'
         ),
         BotCommand(
-            command='contacts',
-            description='Сохранённые контакты'
-        ),
-        BotCommand(
             command='add_contact',
             description='Добавить контакт'
+        ),
+        BotCommand(
+            command='contacts',
+            description='Сохранённые контакты'
         ),
         BotCommand(
             command='delete_contacts',
@@ -43,16 +43,16 @@ async def get_commands_admins(bot: Bot, chat_ids: list):
             description='Удалить пользователей 1C'
         ),
         BotCommand(
-            command='contacts',
-            description='Сохранённые сохраненные контакты'
-        ),
-        BotCommand(
             command='add_contact',
             description='Добавить контакт'
         ),
         BotCommand(
+            command='contacts',
+            description='Сохранённые контакты'
+        ),
+        BotCommand(
             command='delete_contacts',
-            description='Удалить сохранённые контакты'
+            description='Удалить сохраненные контакты'
         ),
         BotCommand(
             command='help',

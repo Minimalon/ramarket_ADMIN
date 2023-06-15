@@ -57,3 +57,7 @@ class Org(CallbackData, prefix='org'):
 
 class Shops(CallbackData, prefix='shops'):
     code: str
+
+
+class HistoryShopOrdersByDays(CallbackData, prefix='historyOrdersShopByDays'):
+    days: str

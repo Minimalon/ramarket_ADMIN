@@ -181,7 +181,7 @@ async def history_user_orders_by_days(call: CallbackQuery, state: FSMContext, bo
     start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
     end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
     data = await state.get_data()
-    path = await create_excel_by_agent_id(data['user_id'], data['agent_name'])
+    path = await create_excel_by_agent_id(data['user_id'], data['agent_name'], start_date=start_date, end_date=end_date)
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:

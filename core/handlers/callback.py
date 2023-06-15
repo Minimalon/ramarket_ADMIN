@@ -7,12 +7,14 @@ from loguru import logger
 
 from core.database.queryDB import delete_saved_phones, get_saved_phones, get_all_clients
 from core.database.ramarket_shop.db_shop import create_excel_by_agent_id
-from core.keyboards.inline import getKeyboard_currencies, getKeyboard_shop_functions, getKeyboard_delete_contacts, getKeyboard_delete_users
+from core.keyboards.inline import getKeyboard_currencies, getKeyboard_shop_functions, getKeyboard_delete_contacts, getKeyboard_delete_users, getKeyboard_filters_user_history_orders
+from core.oneC import api
 from core.utils import texts
 from core.utils.callbackdata import DeleteContact, DeleteUsers
-from core.oneC import api
+from core.utils.states import HistoryOrdersUser
 
 api = api.Api()
+
 
 async def select_currency(call: CallbackQuery):
     await call.message.edit_text('Выберите валюту', reply_markup=getKeyboard_currencies())
@@ -22,7 +24,14 @@ async def functions_shop(call: CallbackQuery):
     await call.message.edit_text('Выберите нужную операцию', reply_markup=getKeyboard_shop_functions())
 
 
-async def historyOneUser(call: CallbackQuery, state: FSMContext, bot: Bot):
+async def select_filter_user_history_orders(call: CallbackQuery, state: FSMContext):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info(f'История продаж одного пользователя')
+    await call.message.edit_text('Выберите нужный вид истории', reply_markup=await getKeyboard_filters_user_history_orders())
+    await state.set_state(HistoryOrdersUser.menu)
+
+
+async def history_one_user_all_days(call: CallbackQuery, state: FSMContext, bot: Bot):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'История продаж одного пользователя')
     data = await state.get_data()
@@ -100,6 +109,7 @@ async def delete_users(call: CallbackQuery, state: FSMContext):
         await api.delete_user(user_id)
         log.success(f'Удалил пользователя 1С {user_id}')
     await call.message.edit_text(f'Пользователи удалены "<code>{",".join(phones)}</code>"')
+
 
 if __name__ == '__main__':
     a = asyncio.run(get_all_clients())

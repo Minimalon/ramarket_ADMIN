@@ -20,7 +20,7 @@ async def get_orders_by_1c_id(id: str):
         return q.scalars().all()
 
 
-async def create_excel_by_agent_id(agent_id: str, agent_name: str):
+async def create_excel_by_agent_id(agent_id: str, agent_name: str, start_date=None, end_date=None):
     async with async_session() as session:
         q = await session.execute(select(HistoryOrders).filter(HistoryOrders.agent_id == agent_id))
         orders = q.scalars().first()
@@ -29,13 +29,22 @@ async def create_excel_by_agent_id(agent_id: str, agent_name: str):
         path_file = os.path.join(config.dir_path, 'files', 'historyOrders', f"{'_'.join(agent_name.split())}.xlsx")
         if orders is None:
             return False
-        query = text(f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE agent_id = \'{agent_id}\' order by date DESC')
+        if start_date and end_date:
+            query = text(
+                f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE agent_id = \'{agent_id}\' '
+                f'AND date >= \'{start_date}\' AND date < \'{end_date}\' '
+                f'order by date DESC')
+        else:
+            query = text(f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE agent_id = \'{agent_id}\' order by date DESC')
         engine = create_engine(f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
         df = pd.read_sql(query, engine.connect())
+        if df.empty:
+            return False
         df['date'] = df['date'].dt.tz_localize(None)
         df = df.drop(columns=['chat_id', 'id', 'agent_id', 'seller_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
         df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
+
         for column in df:
             column_length = max(df[column].astype(str).map(len).max(), len(column))
             col_idx = df.columns.get_loc(column)
@@ -70,6 +79,8 @@ async def create_excel_by_shop(shop_id: str, shop_name: str, start_date=None, en
             query = text(f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id = \'{shop_id}\' order by date DESC')
         engine = create_engine(f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
         df = pd.read_sql(query, engine.connect())
+        if df.empty:
+            return False
         df['date'] = df['date'].dt.tz_localize(None)
         df = df.drop(columns=['chat_id', 'id', 'agent_id', 'seller_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")

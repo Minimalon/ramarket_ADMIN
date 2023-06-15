@@ -31,10 +31,16 @@ class StatesCreateEmployee(StatesGroup):
     name = State()
 
 
-class HistoryOrders(StatesGroup):
+class HistoryOrdersShop(StatesGroup):
     org = State()
     country = State()
     city = State()
     shops = State()
+    start_date = State()
+    end_date = State()
+
+
+class HistoryOrdersUser(StatesGroup):
+    menu = State()
     start_date = State()
     end_date = State()

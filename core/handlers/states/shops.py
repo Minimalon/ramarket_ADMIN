@@ -89,6 +89,7 @@ async def add_shops(call: CallbackQuery, state: FSMContext):
                  if shop['id'] in addShops]
         await Api().user_add_shop(data.get('user_id'), addShops)
         await asyncio.sleep(5)
+        log.success(f"Успешно прикреплены магазины '{addShops}'")
         if len(addShops) == 1:
             await call.message.edit_text(f'Магазин успешно прикреплён <b>{shops[0]}</b> ✅')
         else:

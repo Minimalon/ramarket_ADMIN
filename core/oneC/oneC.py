@@ -1,6 +1,8 @@
 import asyncio
 from collections import namedtuple
 
+import requests
+
 from core.oneC.api import Api
 
 api = Api()
@@ -173,12 +175,12 @@ async def get_org_name(org_id: str):
 
 
 if __name__ == '__main__':
-    # print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='79934055804').text)
+    print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='79934055804').text)
     # print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='905539447374').json())
     # print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='79831358491').text)
     # asyncio.run(get_unique_countryes())
     # a = asyncio.run(get_unique_cities())
     # asyncio.run(get_city_by_country_code('784'))
-    a = asyncio.run(get_unique_countryes('165202396034'))
-    print(a)
+    # a = asyncio.run(get_unique_countryes('165202396034'))
+    # print(a)
     # 80, 5093

@@ -50,10 +50,10 @@ async def get_commands_admins(bot: Bot, chat_ids: list):
             command='contacts',
             description='Сохранённые контакты'
         ),
-        BotCommand(
-            command='delete_contacts',
-            description='Удалить сохраненные контакты'
-        ),
+        # BotCommand(
+        #     command='delete_contacts',
+        #     description='Удалить сохранённые контакты'
+        # ),
         BotCommand(
             command='help',
             description='Видео урок'

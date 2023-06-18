@@ -145,4 +145,4 @@ class Api:
 
 
 if __name__ == '__main__':
-    print(asyncio.run(Api().create_employ('Артур программист бота', True, '79934055804')))
+    print(asyncio.run(Api().create_employ('Руслан', True, '79831358491')))

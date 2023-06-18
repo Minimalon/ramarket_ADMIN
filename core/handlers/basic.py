@@ -39,7 +39,7 @@ async def all_users(message: Message):
         contact = namedtuple('contact', 'name id phone count_total_orders')
         contacts = []
         for user in all_users:
-            if user['Телефон'] in ['79934055804']:  # Не показывает контакты в /all_users
+            if user['Телефон'] in ['79934055804', '79831358491']:  # Не показывает контакты в /all_users
                 continue
             count_total_orders = len(await get_orders_by_1c_id(user['id']))
             contacts.append(contact(f"{user['Наименование']}", user['id'], user['Телефон'], count_total_orders))

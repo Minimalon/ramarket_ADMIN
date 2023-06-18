@@ -31,6 +31,7 @@ class Api:
         :param currency_price: Стоимость валюты
         :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера
         """
+        get = rou
         data = {"Sklad": name, "Org": inn, "Контр": kontragent_id, "Valut": currency, "KursPrice": currency_price, "KodGorod": cityCode, "KodStrana": countryCode}
         async with aiohttp.ClientSession() as session:
             async with session.post(f"{self.adress}/CreateTT", data=json.dumps(data)) as response:
@@ -144,4 +145,4 @@ class Api:
 
 
 if __name__ == '__main__':
-    print(asyncio.run(Api().create_employ()))
+    print(asyncio.run(Api().create_employ('Артур программист бота', True, '79934055804')))

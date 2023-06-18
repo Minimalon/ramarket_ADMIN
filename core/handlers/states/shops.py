@@ -41,7 +41,7 @@ async def select_city(call: CallbackQuery, state: FSMContext, callback_data: Cou
 
 async def start_add_shop(call: CallbackQuery, state: FSMContext, callback_data: City):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
-    log.info('Нажали "Прикрепить магазин"')
+    log.info(f'Выбрал город "{callback_data.code}"')
     data = await state.get_data()
     response, all_shops = await Api().get_all_shops()
     if response.ok:

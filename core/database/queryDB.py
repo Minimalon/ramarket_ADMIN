@@ -39,10 +39,14 @@ async def get_client_info(chat_id):
         return client
 
 
-async def get_admins():
+async def get_admins(chat_id=None):
     async with async_session() as session:
-        q = await session.execute(select(Clients).filter(Clients.admin))
-        return q.scalars().all()
+        if chat_id is None:
+            q = await session.execute(select(Clients).filter(Clients.admin))
+            return q.scalars().all()
+        else:
+            q = await session.execute(select(Clients.admin).filter(Clients.chat_id == str(chat_id)))
+            return q.scalars().first()
 
 
 async def get_all_clients():

@@ -1,13 +1,14 @@
 import os.path
 from collections import namedtuple
 from operator import attrgetter
+from loguru import logger
 
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, FSInputFile
 
 import config
-from core.database.queryDB import get_saved_phones
+from core.database.queryDB import get_saved_phones, get_admins
 from core.database.ramarket_shop.db_shop import get_orders_by_1c_id
 from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts, getKeyboard_delete_contacts, getKeyboard_all_contacts, getKeyboard_start_delete_users, \
     getKeyboard_filters_total_shop_history_orders
@@ -35,6 +36,12 @@ async def contacts(message: Message):
 
 
 async def all_users(message: Message):
+    log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
+    admin = await get_admins(message.chat.id)
+    if not admin:
+        await message.answer(texts.error_head + "Вы не суперадмин")
+        log.error("Не суперадмин")
+        return
     response, all_users = await oneC.get_all_users()
     if response.ok:
         contact = namedtuple('contact', 'name id phone count_total_orders')
@@ -49,6 +56,12 @@ async def all_users(message: Message):
 
 
 async def start_delete_users(message: Message):
+    log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
+    admin = await get_admins(message.chat.id)
+    if not admin:
+        await message.answer(texts.error_head + "Вы не суперадмин")
+        log.error("Не суперадмин")
+        return
     response, contacts = await oneC.get_all_users()
     if response.ok:
         await message.answer("Выберите нужного пользователя для удаления", reply_markup=await getKeyboard_start_delete_users(contacts))
@@ -66,4 +79,10 @@ async def start_delete_contacts(message: Message, state: FSMContext):
 
 
 async def filter_total_orders(message: Message):
+    log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
+    admin = await get_admins(message.chat.id)
+    if not admin:
+        await message.answer(texts.error_head + "Вы не суперадмин")
+        log.error("Не суперадмин")
+        return
     await message.answer("Выберите пользователя на удаление", reply_markup=await getKeyboard_filters_total_shop_history_orders())

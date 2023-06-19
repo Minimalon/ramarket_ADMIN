@@ -52,6 +52,7 @@ async def start():
     dp.message.register(contacts, Command(commands=['contacts']))
     dp.message.register(addContact.enter_phone, Command(commands=['add_contact']))
     dp.message.register(start_delete_contacts, Command(commands=['delete_contacts']))
+    # Админ команды
     dp.message.register(all_users, Command(commands=['all_users']))
     dp.message.register(start_delete_users, Command(commands=['delete_users']))
     dp.message.register(filter_total_orders, Command(commands=['total_orders']))

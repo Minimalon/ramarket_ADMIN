@@ -22,7 +22,7 @@ async def checkClientIN1c(phone):
 
 
 async def checkRegMessage(message: Message) -> bool:
-    log = logger.bind(chat_id=message.chat.id, first_name=message.chat.first_name, text=message.text)
+    log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id, text=message.text)
     client_db = await queryDB.get_client_info(chat_id=message.chat.id)
     if not client_db:
         log.debug("Нету в базе данных")
@@ -62,7 +62,7 @@ async def checkRegMessage(message: Message) -> bool:
 
 
 async def checkRegCallback(call: CallbackQuery) -> bool:
-    log = logger.bind(chat_id=call.message.chat.id, first_name=call.message.chat.first_name, call=call.data)
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id, call=call.data)
     client_db = await queryDB.get_client_info(chat_id=call.message.chat.id)
     if not client_db:
         log.debug("Нету в базе данных")
@@ -85,7 +85,7 @@ class CheckRegistrationMessageMiddleware(BaseMiddleware):
             data: dict[str, Any],
     ) -> Any:
         if await checkRegMessage(event):
-            log = logger.bind(chat_id=event.chat.id, first_name=event.chat.first_name)
+            log = logger.bind(name=event.chat.first_name, chat_id=event.chat.id)
             log.info(f'Отправил сообщение "{event.text}"')
             return await handler(event, data)
 

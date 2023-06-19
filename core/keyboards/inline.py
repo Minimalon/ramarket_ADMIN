@@ -107,7 +107,10 @@ async def getKeyboard_delete_contacts(contacts, to_delete=None):
     keyboard = InlineKeyboardBuilder()
     if contacts:
         for contact in contacts:
-            name = (await oneC.get_client_info(contact))['Наименование']
+            try:
+                name = (await oneC.get_client_info(contact))['Наименование']
+            except TypeError:
+                name = contact
             if contact in to_delete:
                 keyboard.button(text=f'{name} ✅', callback_data=DeleteContact(phone=contact))
             else:

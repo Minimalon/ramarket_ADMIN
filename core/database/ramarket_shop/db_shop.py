@@ -1,7 +1,7 @@
 import os
 
 import pandas as pd
-from sqlalchemy import select, create_engine, text
+from sqlalchemy import select, create_engine, text, distinct
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
@@ -16,7 +16,7 @@ async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False
 
 async def get_orders_by_1c_id(id: str):
     async with async_session() as session:
-        q = await session.execute(select(HistoryOrders).filter(HistoryOrders.agent_id == id))
+        q = await session.execute(select(distinct(HistoryOrders.order_id)).where(HistoryOrders.agent_id == id))
         return q.scalars().all()
 
 

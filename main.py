@@ -12,6 +12,7 @@ from loguru import logger
 
 import config
 from core.database.model import init_models
+from core.database.queryDB import get_admins
 from core.handlers import contact
 from core.handlers.basic import get_start, video_tutorial, contacts, start_delete_contacts, all_users, start_delete_users, filter_total_orders
 from core.handlers.callback import select_to_delete_contacts, select_currency, history_one_user_all_days, delete_contacts, functions_shop, select_to_delete_users, delete_users, \
@@ -34,7 +35,8 @@ async def start():
 
     bot = Bot(token=config.token, parse_mode='HTML')
     await get_commands(bot)
-    await get_commands_admins(bot, config.admins)
+    admins = await get_admins()
+    await get_commands_admins(bot, admins)
     await init_models()
 
     storage = RedisStorage.from_url(config.redisStorage)

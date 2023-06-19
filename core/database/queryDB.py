@@ -39,6 +39,12 @@ async def get_client_info(chat_id):
         return client
 
 
+async def get_admins():
+    async with async_session() as session:
+        q = await session.execute(select(Clients).filter(Clients.admin))
+        return q.scalars().all()
+
+
 async def get_all_clients():
     async with async_session() as session:
         q = await session.execute(select(Clients))
@@ -94,7 +100,8 @@ async def delete_saved_phones(chat_id: str, phones_to_delete: list):
             await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=None))
         await session.commit()
 
+
 if __name__ == '__main__':
-    a = asyncio.run(get_all_clients())
+    a = asyncio.run(get_admins())
     for b in a:
-        print(b.phones)
+        print(b.first_name)

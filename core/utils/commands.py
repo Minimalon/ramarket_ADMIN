@@ -1,3 +1,4 @@
+import aiogram.exceptions
 from aiogram import Bot
 from aiogram.types import BotCommand, BotCommandScopeDefault, BotCommandScopeChat
 
@@ -28,7 +29,7 @@ async def get_commands(bot: Bot):
     await bot.set_my_commands(commands, BotCommandScopeDefault())
 
 
-async def get_commands_admins(bot: Bot, chat_ids: list):
+async def get_commands_admins(bot: Bot, admins):
     commands = [
         BotCommand(
             command='start',
@@ -63,5 +64,8 @@ async def get_commands_admins(bot: Bot, chat_ids: list):
             description='Видео урок'
         ),
     ]
-    for chat_id in chat_ids:
-        await bot.set_my_commands(commands, BotCommandScopeChat(chat_id=chat_id))
+    for admin in admins:
+        try:
+            return await bot.set_my_commands(commands, BotCommandScopeChat(chat_id=admin.chat_id))
+        except aiogram.exceptions.TelegramBadRequest:
+            continue

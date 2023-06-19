@@ -2,7 +2,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from loguru import logger
 
-from core.database.queryDB import save_phone
+from core.database.queryDB import save_phone, get_client_info
 from core.keyboards.inline import getKeyboard_contact_false, getKeyboard_contact_true
 from core.oneC import oneC
 from core.utils import texts
@@ -22,7 +22,9 @@ async def get_contact(message: Message, state: FSMContext):
         await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'])
         log.info('Сотрудник найден в базе 1С')
         text = await texts.employee_true(employee, phone)
-        await message.answer(text, reply_markup=getKeyboard_contact_true())
+        client_info = await get_client_info(message.chat.id)
+        admin_info = await oneC.get_employeeInfo(client_info.phone_number)
+        await message.answer(text, reply_markup=getKeyboard_contact_true(superadmin=client_info.admin, employee_info=employee, admin_info=admin_info))
     else:
         log.error('Сотрудник не найден в базе 1С')
         text = f"Данный контакт '<code>{phone}</code>' не зарегистрирован"
@@ -40,9 +42,10 @@ async def get_saved_contact(call: CallbackQuery, state: FSMContext, callback_dat
         await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'])
         log.info('Сотрудник найден в базе 1С')
         text = await texts.employee_true(employee, phone)
-        await call.message.edit_text(text, reply_markup=getKeyboard_contact_true())
+        client_info = await get_client_info(call.message.chat.id)
+        admin_info = await oneC.get_employeeInfo(client_info.phone_number)
+        await call.message.edit_text(text, reply_markup=getKeyboard_contact_true(superadmin=client_info.admin, employee_info=employee, admin_info=admin_info))
     else:
         log.error('Сотрудник не найден в базе 1С')
         text = f"Данный контакт '<code>{phone}</code>' не зарегистрирован"
-        # await message.answer(text, reply_markup=getKeyboard_contact_false(phone))
-        await call.message.edit_text(text)
+        await call.message.answer(text, reply_markup=getKeyboard_contact_false(phone))

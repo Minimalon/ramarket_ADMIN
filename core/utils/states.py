@@ -44,3 +44,9 @@ class HistoryOrdersUser(StatesGroup):
     menu = State()
     start_date = State()
     end_date = State()
+
+
+class HistoryOrdersAll(StatesGroup):
+    menu = State()
+    start_date = State()
+    end_date = State()

@@ -18,6 +18,20 @@ async def get_shop_name(phone, shop_id):
             return shop['Магазин']
 
 
+async def get_admin_shops(phone):
+    phone = str(phone)
+    employee = await get_employeeInfo(phone)
+    shops = [shop['idМагазин'] for shop in employee['Магазины']]
+    response, all_shops = await api.get_all_shops()
+    turple = namedtuple('Shop', 'name code')
+    admin_shops = []
+    for shop_id in shops:
+        for shop in all_shops:
+            if shop['id'] == shop_id:
+                admin_shops.append(turple(shop['Наименование'], shop['id']))
+    return admin_shops
+
+
 async def get_orgs():
     """
     Возвращает организации
@@ -178,7 +192,7 @@ if __name__ == '__main__':
     print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='79934055804').text)
     # print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='905539447374').json())
     # print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='79831358491').text)
-    # asyncio.run(get_unique_countryes())
+    print(asyncio.run(get_admin_shops('79934055804')))
     # a = asyncio.run(get_unique_cities())
     # asyncio.run(get_city_by_country_code('784'))
     # a = asyncio.run(get_unique_countryes('165202396034'))

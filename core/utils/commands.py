@@ -43,6 +43,10 @@ async def get_commands_admins(bot: Bot, chat_ids: list):
             description='Удалить пользователей 1C'
         ),
         BotCommand(
+            command='total_orders',
+            description='История всех продаж'
+        ),
+        BotCommand(
             command='add_contact',
             description='Добавить контакт'
         ),

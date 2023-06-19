@@ -9,6 +9,7 @@ from core.database.queryDB import delete_saved_phones, get_saved_phones, get_all
 from core.database.ramarket_shop.db_shop import create_excel_by_agent_id
 from core.keyboards.inline import getKeyboard_currencies, getKeyboard_shop_functions, getKeyboard_delete_contacts, getKeyboard_delete_users, getKeyboard_filters_user_history_orders
 from core.oneC import api
+from core.oneC.oneC import get_employeeInfo
 from core.utils import texts
 from core.utils.callbackdata import DeleteContact, DeleteUsers
 from core.utils.states import HistoryOrdersUser
@@ -35,7 +36,7 @@ async def history_one_user_all_days(call: CallbackQuery, state: FSMContext, bot:
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'История продаж одного пользователя')
     data = await state.get_data()
-    path = await create_excel_by_agent_id(data['user_id'], data['agent_name'])
+    path = await create_excel_by_agent_id(data['user_id'], f"{'_'.join(data['agent_name'].split())}__all")
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
         await state.clear()
@@ -89,7 +90,7 @@ async def delete_contacts(call: CallbackQuery, state: FSMContext):
     await call.message.edit_text(f'Пользователи удалены "<code>{",".join(data.get("to_delete"))}</code>"')
 
 
-async def delete_users(call: CallbackQuery, state: FSMContext):
+async def delete_users(call: CallbackQuery, state: FSMContext, bot: Bot):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     data = await state.get_data()
     response, all_users = await api.get_all_users()
@@ -100,9 +101,8 @@ async def delete_users(call: CallbackQuery, state: FSMContext):
             continue
         for client_phone in client.phones.split(','):
             if client_phone in phones:
-                phones_to_delete.append(client_phone)
-        if phones_to_delete:
-            await delete_saved_phones(client.user_id, phones_to_delete)
+                employee = await get_employeeInfo(client_phone)
+                await bot.send_message(client.chat_id, f'Данный сотрудник <code>{employee["Наименование"]}</code> с сотовым номером <code>{client_phone}</code> удалён из базы 1С')
             log.success(f'Удалил сохранённые контакты {phones_to_delete} у пользователя {client.user_id}')
     await state.update_data(to_delete_1c=None)
     for user_id in data.get('to_delete_1c'):

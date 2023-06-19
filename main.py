@@ -13,16 +13,16 @@ from loguru import logger
 import config
 from core.database.model import init_models
 from core.handlers import contact
-from core.handlers.basic import get_start, video_tutorial, contacts, start_delete_contacts, all_users, start_delete_users
+from core.handlers.basic import get_start, video_tutorial, contacts, start_delete_contacts, all_users, start_delete_users, filter_total_orders
 from core.handlers.callback import select_to_delete_contacts, select_currency, history_one_user_all_days, delete_contacts, functions_shop, select_to_delete_users, delete_users, \
     select_filter_user_history_orders
 from core.handlers.states import shops, createShop, addContact, createEmployee, historyOrders
 from core.handlers.states.updateCurrencyPriceAll import get_price, update_price
 from core.middlewares.checkReg import CheckRegistrationCallbackMiddleware, CheckRegistrationMessageMiddleware
 from core.utils.callbackdata import SavedContact, DeleteContact, CreateEmployee, EmployeeAdmin, Country, City, Shops, Currencyes, Kontragent, RemoveShop, AddShop, CurrencyOneShop, \
-    Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays
+    Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops
 from core.utils.commands import get_commands, get_commands_admins
-from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop, CreateShop, UpdateCurrencyPriceAll, Contact, OneShopCurrency, HistoryOrdersUser
+from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop, CreateShop, UpdateCurrencyPriceAll, Contact, OneShopCurrency, HistoryOrdersUser, HistoryOrdersAll
 
 
 @logger.catch()
@@ -52,6 +52,7 @@ async def start():
     dp.message.register(start_delete_contacts, Command(commands=['delete_contacts']))
     dp.message.register(all_users, Command(commands=['all_users']))
     dp.message.register(start_delete_users, Command(commands=['delete_users']))
+    dp.message.register(filter_total_orders, Command(commands=['total_orders']))
 
     # Сохранённые пользователи
     dp.callback_query.register(contact.get_saved_contact, SavedContact.filter())
@@ -75,6 +76,12 @@ async def start():
     dp.callback_query.register(createShop.select_currency, F.data == 'startCreateShop')
     dp.callback_query.register(historyOrders.select_org, F.data == 'historyOrders')
 
+    # История продаж всех магазинов
+    dp.callback_query.register(historyOrders.history_total_shops, HistoryTotalShops.filter())
+    dp.callback_query.register(historyOrders.send_history_total_shops_all_days, F.data == 'history_total_shops_all_days')
+    dp.callback_query.register(historyOrders.history_period, F.data == 'history_period_total_shops')
+    dp.message.register(historyOrders.start_period, HistoryOrdersAll.start_date)
+    dp.message.register(historyOrders.end_period, HistoryOrdersAll.end_date)
     # История продаж по магазину
     dp.callback_query.register(historyOrders.select_country, Org.filter(), HistoryOrdersShop.org)
     dp.callback_query.register(historyOrders.select_city, Country.filter(), HistoryOrdersShop.country)
@@ -84,9 +91,7 @@ async def start():
     dp.callback_query.register(historyOrders.history_period, F.data == 'history_period_shop')
     dp.message.register(historyOrders.start_period, HistoryOrdersShop.start_date)
     dp.message.register(historyOrders.end_period, HistoryOrdersShop.end_date)
-    # История продаж по магазину за промежуток времени
     dp.callback_query.register(historyOrders.history_shop_orders_by_days, HistoryShopOrdersByDays.filter())
-
     # История продаж по пользователю
     dp.callback_query.register(select_filter_user_history_orders, F.data == 'historyOrdersOneUser')
     dp.callback_query.register(history_one_user_all_days, F.data == 'orders_user_all_days')

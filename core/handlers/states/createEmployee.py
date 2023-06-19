@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
-from core.database.queryDB import save_phone
+from core.database.queryDB import save_phone, get_client_info
 from core.keyboards.inline import getKeyboard_select_admin, getKeyboard_contact_true, getKeyboard_contact_false
 from core.oneC.api import Api
 from core.utils import texts
@@ -48,7 +48,9 @@ async def final_create_empliyee(message: Message, state: FSMContext):
             user_id = employee['id']
             await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'])
             text = await texts.employee_true(employee, phone)
-            await message.answer(text, reply_markup=getKeyboard_contact_true())
+            client_info = await get_client_info(message.chat.id)
+            admin_info = await oneC.get_employeeInfo(client_info.phone_number)
+            await message.answer(text, reply_markup=getKeyboard_contact_true(superadmin=client_info.admin, employee_info=employee, admin_info=admin_info))
         else:
             log.error('Сотрудник не найден в базе 1С после его создания')
             text = f"Данный контакт '<code>{phone}</code>' не зарегистрирован"

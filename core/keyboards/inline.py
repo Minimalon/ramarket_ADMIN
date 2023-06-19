@@ -19,8 +19,11 @@ async def getKeyboard_contacts(contacts):
     keyboard = InlineKeyboardBuilder()
     if contacts:
         for contact in contacts:
-            name = (await oneC.get_client_info(contact))['Наименование']
-            keyboard.button(text=name, callback_data=SavedContact(phone=contact))
+            try:
+                name = (await oneC.get_client_info(contact))['Наименование']
+                keyboard.button(text=name, callback_data=SavedContact(phone=contact))
+            except TypeError:
+                keyboard.button(text=contact, callback_data=SavedContact(phone=contact))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -47,10 +50,23 @@ async def getKeyboard_filters_history_orders():
     return keyboard.as_markup()
 
 
+async def getKeyboard_filters_total_shop_history_orders():
+    keyboard = InlineKeyboardBuilder()
+    keyboard.button(text='Сегодня', callback_data=HistoryTotalShops(days=0))
+    keyboard.button(text='7 дней', callback_data=HistoryTotalShops(days=7))
+    keyboard.button(text='30 дней', callback_data=HistoryTotalShops(days=30))
+    keyboard.button(text='За всё время', callback_data='history_total_shops_all_days')
+    keyboard.button(text='Промежуток времени', callback_data='history_period_total_shops')
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
 async def getKeyboard_start_delete_users(contacts):
     keyboard = InlineKeyboardBuilder()
     if contacts:
         for contact in contacts:
+            if contact['Телефон'] in ['79934055804', '79831358491']:  # Не показывает контакты в /delete_users
+                continue
             keyboard.button(text=contact['Наименование'], callback_data=DeleteUsers(id=contact['id']))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
@@ -60,6 +76,8 @@ async def getKeyboard_all_contacts(contacts):
     keyboard = InlineKeyboardBuilder()
     if contacts:
         for contact in contacts:
+            if contact.phone in ['79934055804', '79831358491']:  # Не показывает контакты в /delete_users
+                continue
             keyboard.button(text=f'{contact.name} | {contact.count_total_orders}', callback_data=SavedContact(phone=contact.phone))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
@@ -71,6 +89,8 @@ async def getKeyboard_delete_users(contacts, to_delete=None):
     keyboard = InlineKeyboardBuilder()
     if contacts:
         for contact in contacts:
+            if contact['Телефон'] in ['79934055804', '79831358491']:  # Не показывает контакты в /delete_users
+                continue
             if contact['id'] in to_delete:
                 keyboard.button(text=f'{contact["Наименование"]} ✅', callback_data=DeleteUsers(id=contact["id"]))
             else:
@@ -98,10 +118,16 @@ async def getKeyboard_delete_contacts(contacts, to_delete=None):
     return keyboard.as_markup()
 
 
-def getKeyboard_contact_true():
+def getKeyboard_contact_true(superadmin: bool, employee_info, admin_info):
     keyboard = InlineKeyboardBuilder()
-    keyboard.button(text='Операции с магазинами', callback_data='storeFunctions')
-    keyboard.button(text='История продаж', callback_data='historyOrdersOneUser')
+    employee_admin = True if employee_info['Администратор'] == 'Да' else False
+    admin_shops = [shop['idМагазин'] for shop in admin_info['Магазины']]
+    if superadmin or not employee_admin:
+        keyboard.button(text='Операции с магазинами', callback_data='storeFunctions')
+    for admin_shop in admin_shops:
+        if admin_shop in (shop['idМагазин'] for shop in employee_info['Магазины']) or superadmin:
+            keyboard.button(text='История продаж', callback_data='historyOrdersOneUser')
+            break
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 

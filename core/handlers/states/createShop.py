@@ -72,6 +72,7 @@ async def final(message: Message, state: FSMContext):
     data = await state.get_data()
     name, inn, currency, kontragent_id, cityCode, countryCode, currency_price = message.text, data['org_id'], data['currency'], data['kontragent_id'], data['cityCode'], \
         data['countryCode'], data['currency_price']
+    await state.update_data(name=name)
     city, country = (await get_city_by_code(cityCode)), (await get_country_by_code(countryCode))
     currency_price = Decimal(currency_price).quantize(Decimal('1.0000'))
     kontragent_name = [agent['Наименование'] for agent in await oneC.get_all_kontragents() if agent['Id'] == kontragent_id]

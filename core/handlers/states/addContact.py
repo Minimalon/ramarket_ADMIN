@@ -8,7 +8,7 @@ from core.oneC import oneC
 from core.keyboards.inline import getKeyboard_contact_true, getKeyboard_contact_false
 from core.utils import texts
 from core.utils.states import AddPhone, Contact
-from core.database.queryDB import save_phone
+from core.database.queryDB import save_phone, get_client_info
 
 
 async def enter_phone(message: Message, state: FSMContext):
@@ -28,7 +28,9 @@ async def add_phone(message: Message, state: FSMContext):
         await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'])
         log.info('Сотрудник найден в базе 1С')
         text = await texts.employee_true(employee, phone)
-        await message.answer(text, reply_markup=getKeyboard_contact_true())
+        client_info = await get_client_info(message.chat.id)
+        admin_info = await oneC.get_employeeInfo(client_info.phone_number)
+        await message.answer(text, reply_markup=getKeyboard_contact_true(superadmin=client_info.admin, employee_info=employee, admin_info=admin_info))
     else:
         log.error('Сотрудник не найден в базе 1С')
         text = f"Данный контакт '<code>{phone}</code>' не зарегистрирован"

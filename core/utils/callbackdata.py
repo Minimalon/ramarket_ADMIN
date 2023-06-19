@@ -65,3 +65,7 @@ class HistoryShopOrdersByDays(CallbackData, prefix='historyOrdersShopByDays'):
 
 class HistoryUserOrdersByDays(CallbackData, prefix='historyOrdersUserByDays'):
     days: int
+
+
+class HistoryTotalShops(CallbackData, prefix='historyTotalShops'):
+    days: int

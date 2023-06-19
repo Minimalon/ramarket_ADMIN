@@ -9,7 +9,8 @@ from aiogram.types import Message, FSInputFile
 import config
 from core.database.queryDB import get_saved_phones
 from core.database.ramarket_shop.db_shop import get_orders_by_1c_id
-from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts, getKeyboard_delete_contacts, getKeyboard_all_contacts, getKeyboard_start_delete_users
+from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts, getKeyboard_delete_contacts, getKeyboard_all_contacts, getKeyboard_start_delete_users, \
+    getKeyboard_filters_total_shop_history_orders
 from core.oneC.api import Api
 from core.utils import texts
 
@@ -39,8 +40,6 @@ async def all_users(message: Message):
         contact = namedtuple('contact', 'name id phone count_total_orders')
         contacts = []
         for user in all_users:
-            if user['Телефон'] in ['79934055804', '79831358491']:  # Не показывает контакты в /all_users
-                continue
             count_total_orders = len(await get_orders_by_1c_id(user['id']))
             contacts.append(contact(f"{user['Наименование']}", user['id'], user['Телефон'], count_total_orders))
         contacts = sorted(contacts, key=attrgetter('count_total_orders'), reverse=True)
@@ -64,3 +63,7 @@ async def start_delete_contacts(message: Message, state: FSMContext):
         await message.answer("Выберите пользователя на удаление", reply_markup=await getKeyboard_delete_contacts(contacts))
     else:
         await message.answer(texts.error_head + "Список сохраненных контактов пуст")
+
+
+async def filter_total_orders(message: Message):
+    await message.answer("Выберите пользователя на удаление", reply_markup=await getKeyboard_filters_total_shop_history_orders())

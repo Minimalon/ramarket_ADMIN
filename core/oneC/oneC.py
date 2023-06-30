@@ -1,8 +1,11 @@
 import asyncio
+import datetime
 from collections import namedtuple
+from operator import attrgetter
 
 import requests
 
+from core.database.ramarket_shop.db_shop import get_counts_shop_sales
 from core.oneC.api import Api
 
 api = Api()
@@ -116,16 +119,17 @@ async def get_cities_by_country_code(code: str, org_id=None):
     return cities
 
 
-async def get_shops_by_city_code_and_org_id(code: str, org_id):
+async def get_shops_by_city_code_and_org_id(code: str, org_id, days_sort=14):
     """
     Возвращает магазины по коду города
+    :param days_sort:
     :param org_id: ID организации
     :param code: Код страны
     :return: Возвращает namedtuple('Shop', 'name code')
     """
     response, all_shops = await api.get_all_shops()
     shops = []
-    turple = namedtuple('Shop', 'name code')
+    Shop = namedtuple('Shop', 'name code')
     for shop in all_shops:
         if shop["Org"] != org_id:
             continue
@@ -134,8 +138,20 @@ async def get_shops_by_city_code_and_org_id(code: str, org_id):
         elif not shop['КодГород'] or not shop["КодСтраны"]:
             continue
         if shop['КодГород'] == code and shop['КодГород'] not in (i.code for i in shops):
-            shops.append(turple(shop["Наименование"], shop['id']))
-    return shops
+            shops.append(Shop(shop["Наименование"], shop['id']))
+
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    week = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=days_sort), '%Y-%m-%d')
+    Shop_count = namedtuple('Shop_count', 'name code count')
+    result = []
+    for shop in shops:
+        count = await get_counts_shop_sales(shop.code, week, today)
+        if count:
+            result.append(Shop_count(shop.name, shop.code, count))
+        else:
+            result.append(Shop_count(shop.name, shop.code, 0))
+    result = sorted(result, key=attrgetter('count'), reverse=True)
+    return result
 
 
 async def get_city_by_code(code: str):
@@ -189,12 +205,13 @@ async def get_org_name(org_id: str):
 
 
 if __name__ == '__main__':
-    print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='79934055804').text)
+    # print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='79934055804').text)
     # print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='905539447374').json())
     # print(requests.post('http://pr-egais.ddns.net:24142/RAMA/hs/GetUP', data='79831358491').text)
-    print(asyncio.run(get_admin_shops('79934055804')))
+    # print(asyncio.run(get_admin_shops('79934055804')))
     # a = asyncio.run(get_unique_cities())
     # asyncio.run(get_city_by_country_code('784'))
     # a = asyncio.run(get_unique_countryes('165202396034'))
     # print(a)
     # 80, 5093
+    print(asyncio.run(get_shops_by_city_code_and_org_id('000000004', '1603007671')))

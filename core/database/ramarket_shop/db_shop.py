@@ -1,7 +1,9 @@
+import asyncio
 import os
+from datetime import datetime
 
 import pandas as pd
-from sqlalchemy import select, create_engine, text, distinct
+from sqlalchemy import select, create_engine, text, distinct, func, DateTime, cast
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
@@ -12,6 +14,21 @@ engine = create_async_engine(
     f"postgresql+asyncpg://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
 Base = declarative_base()
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+
+async def get_counts_shop_sales(shop_id: str, start_date: str, end_date: str):
+    start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    async with async_session() as session:
+        query = (
+            select(func.count(HistoryOrders.shop_id))
+            .filter(HistoryOrders.shop_id == shop_id)
+            .filter(HistoryOrders.date >= cast(start_date, DateTime))
+            .filter(HistoryOrders.date < cast(end_date, DateTime))
+            .group_by(HistoryOrders.shop_id)
+        )
+        result = await session.execute(query)
+        return result.scalars().first()
 
 
 async def get_orders_by_1c_id(id: str):
@@ -126,3 +143,8 @@ async def create_excel_by_shops(shop_id: list, file_name: str, start_date=None, 
         writer.sheets['orders'].set_column(col_idx, col_idx, column_length + 3)
     writer.close()
     return path_file
+
+
+if __name__ == '__main__':
+    a = asyncio.run(get_counts_shop_sales('5502601', '2023-05-23', '2023-07-01'))
+    print(a)

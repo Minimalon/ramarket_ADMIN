@@ -105,6 +105,9 @@ async def delete_saved_phones(chat_id: str, phones_to_delete: list):
         await session.commit()
 
 
+
+
+
 if __name__ == '__main__':
     a = asyncio.run(get_admins())
     for b in a:

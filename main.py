@@ -34,6 +34,7 @@ async def start():
                format="{time} | {level} | {name}:{function}:{line} | {message} | {extra}", )
 
     bot = Bot(token=config.token, parse_mode='HTML')
+    await bot.send_message(5263751490, 'Я Запустился!')
     await get_commands(bot)
     admins = await get_admins()
     await get_commands_admins(bot, admins)
@@ -140,6 +141,7 @@ async def start():
     except Exception as e:
         logger.exception(e)
     finally:
+        await bot.send_message(5263751490, 'Я Остановился!!!!')
         await bot.session.close()
 
 

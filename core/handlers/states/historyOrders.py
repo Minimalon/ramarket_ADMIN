@@ -25,6 +25,8 @@ async def select_org(call: CallbackQuery, state: FSMContext):
         await call.message.edit_text("Выберите юридическое лицо", reply_markup=getKeyboad_orgs(await get_orgs()))
     else:
         shops = await get_admin_shops(client_info.phone_number)
+        if not shops:
+            await call.message.edit_text(texts.error_head + 'У вас не привязано ни одного магазина')
         await state.set_state(HistoryOrdersShop.shops)
         await call.message.edit_text("Выберите магазин", reply_markup=getKeyboad_select_shop(shops))
 

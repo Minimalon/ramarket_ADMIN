@@ -26,7 +26,7 @@ async def select_org(call: CallbackQuery, state: FSMContext):
     else:
         shops = await get_admin_shops(client_info.phone_number)
         await state.set_state(HistoryOrdersShop.shops)
-        await call.message.edit_text("Выберите город", reply_markup=getKeyboad_select_shop(shops))
+        await call.message.edit_text("Выберите магазин", reply_markup=getKeyboad_select_shop(shops))
 
 
 async def select_country(call: CallbackQuery, state: FSMContext, callback_data: Org):

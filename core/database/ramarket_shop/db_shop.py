@@ -35,7 +35,6 @@ async def get_orders_by_1c_id(id: str, days):
     async with async_session() as session:
         if days is not None:
             start_date = datetime.now() - timedelta(days=days)
-            print(start_date, days)
             end_date = datetime.now() + timedelta(days=1)
             query = (
                 select(distinct(HistoryOrders.order_id))

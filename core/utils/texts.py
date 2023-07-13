@@ -42,11 +42,10 @@ async def employee_true(employeeInfo, phone, admin_info, superadmin):
 
     sales_text = (f'➖➖➖➖➖➖➖➖➖➖➖\n'
                   f'ℹ️ <b>Продажи:</b>\n'
-                  f'<b>Сегодня:</b> {len(await get_orders_by_1c_id(employeeInfo["id"], 0))}\n'
+                  f'<b>Сегодня:</b> {len(await get_orders_by_1c_id(employeeInfo["id"], 1))}\n'
                   f'<b>7 дней:</b> {len(await get_orders_by_1c_id(employeeInfo["id"], 7))}\n'
                   f'<b>30 дней:</b> {len(await get_orders_by_1c_id(employeeInfo["id"], 30))}\n'
                   )
-    loguru.logger.info(await get_orders_by_1c_id(employeeInfo["id"], 0))
     if superadmin:
         text += sales_text
     else:

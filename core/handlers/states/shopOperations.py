@@ -1,4 +1,3 @@
-import datetime
 import re
 
 from aiogram import Bot
@@ -8,23 +7,23 @@ from loguru import logger
 
 from core.database.queryDB import get_client_info
 from core.database.ramarket_shop.db_shop import create_excel_by_shop, create_excel_by_agent_id, create_excel_by_shops
-from core.keyboards.inline import getKeyboad_select_countries, getKeyboad_select_cities, getKeyboad_select_shop, getKeyboard_filters_history_orders, getKeyboad_orgs
-from core.oneC.oneC import api
-from core.oneC.oneC import get_unique_countryes, get_cities_by_country_code, get_shops_by_city_code_and_org_id, get_shop_by_id, get_orgs, get_admin_shops
+from core.keyboards.inline import getKeyboad_select_countries, getKeyboad_select_cities, getKeyboad_select_shop, getKeyboard_filters_history_orders, getKeyboad_orgs, \
+    getKeyboard_shops_operations, getKeyboard_contracts
+from core.oneC.oneC import *
 from core.utils import texts
-from core.utils.callbackdata import Country, City, Shops, Org, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops
+from core.utils.callbackdata import Country, City, Shops, Org, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract
 from core.utils.states import HistoryOrdersShop, HistoryOrdersUser, HistoryOrdersAll
 
 
 async def select_org(call: CallbackQuery, state: FSMContext):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
-    log.info(f'Нажали кнопку "Историю продаж"')
+    log.info(f'Нажали кнопку "Операции с магазинами"')
     client_info = await get_client_info(call.message.chat.id)
     if client_info.admin:
         await state.set_state(HistoryOrdersShop.org)
         await call.message.edit_text("Выберите юридическое лицо", reply_markup=getKeyboad_orgs(await get_orgs()))
     else:
-        shops = await get_admin_shops(client_info.phone_number)
+        shops = await get_user_shops(client_info.phone_number)
         if not shops:
             await call.message.edit_text(texts.error_head + 'У вас не привязано ни одного магазина')
         await state.set_state(HistoryOrdersShop.shops)
@@ -59,13 +58,44 @@ async def select_shop(call: CallbackQuery, callback_data: City, state: FSMContex
     data = await state.get_data()
     shops = await get_shops_by_city_code_and_org_id(callback_data.code, data['org_id'])
     await state.set_state(HistoryOrdersShop.shops)
-    await call.message.edit_text("Выберите город", reply_markup=getKeyboad_select_shop(shops))
+    await call.message.edit_text("Выберите магазин", reply_markup=getKeyboad_select_shop(shops))
 
 
-async def select_filter_order(call: CallbackQuery, callback_data: Shops, state: FSMContext):
+async def select_shop_operations(call: CallbackQuery, callback_data: Shops, state: FSMContext):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
-    await state.update_data(code=callback_data.code)
+    await state.update_data(shop_id=callback_data.code, org_id=callback_data.org_id)
     log.info(f'Выбрал магазин {callback_data.code}')
+    await call.message.edit_text('Выберите нужную операцию', reply_markup=getKeyboard_shops_operations())
+
+
+async def select_change_contract(call: CallbackQuery, state: FSMContext):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info('Нажали "Изменить договор"')
+    await call.answer('Данная функция еще в разработке')
+    return
+    data = await state.get_data()
+    contracts = await get_contracts_by_org(data['org_id'])
+    if contracts:
+        await call.message.edit_text('Выберите нужную договор', reply_markup=getKeyboard_contracts(contracts))
+    else:
+        name = [_['Наименование'] for _ in await api.get_all_orgs() if _['ИНН'] == data['org_id']][0]
+        await call.message.answer(texts.error_head + f'У данного юр.лица нет договоров {name}', reply_markup=getKeyboard_contracts(contracts))
+
+
+async def change_contract(call: CallbackQuery, state: FSMContext, callback_data: Contract):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info(f'Выбрали договор "{callback_data.id}"')
+    data = await state.get_data()
+    response, contracts = await api.update_shop_contract(data['org_id'])
+    if contracts:
+        await call.message.edit_text('Выберите нужную договор', reply_markup=getKeyboard_contracts(contracts))
+    else:
+        name = [_['Наименование'] for _ in await api.get_all_orgs() if _['ИНН'] == data['org_id']][0]
+        await call.message.answer(texts.error_head + f'У данного юр.лица нет договоров {name}', reply_markup=getKeyboard_contracts(contracts))
+
+
+async def select_history_orders(call: CallbackQuery):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     await call.message.edit_text('Выберите нужный вид истории', reply_markup=await getKeyboard_filters_history_orders())
 
 
@@ -143,9 +173,9 @@ async def end_period(message: Message, state: FSMContext, bot: Bot):
         start_date = data['start_period'].replace('-', '.')
         end_date = message.text.replace('-', '.')
         if re.findall('HistoryOrdersShop', str(await state.get_state())):
-            shop_info = await get_shop_by_id(data["code"])
+            shop_info = await get_shop_by_id(data["shop_id"])
             file_name = f"{'_'.join(shop_info.name.split())}__{start_date}|{end_date}"
-            path = await create_excel_by_shop(data["code"], file_name, start_date=data['start_period'], end_date=message.text)
+            path = await create_excel_by_shop(data["shop_id"], file_name, start_date=data['start_period'], end_date=message.text)
             if path:
                 await bot.send_document(message.chat.id, document=FSInputFile(path))
             else:
@@ -176,8 +206,8 @@ async def send_history_all_days(call: CallbackQuery, state: FSMContext, bot: Bot
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info("Отправил историю заказов за всё время")
     data = await state.get_data()
-    shop_info = await get_shop_by_id(data["code"])
-    path = await create_excel_by_shop(data["code"], f"{'_'.join(shop_info.name.split())}__all")
+    shop_info = await get_shop_by_id(data["shop_id"])
+    path = await create_excel_by_shop(data["shop_id"], f"{'_'.join(shop_info.name.split())}__all")
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
         await state.clear()
@@ -206,8 +236,8 @@ async def history_shop_orders_by_days(call: CallbackQuery, state: FSMContext, bo
     data = await state.get_data()
     start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
     end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
-    shop_info = await get_shop_by_id(data["code"])
-    path = await create_excel_by_shop(data["code"], f"{'_'.join(shop_info.name.split())}__{callback_data.days}days", start_date=start_date, end_date=end_date)
+    shop_info = await get_shop_by_id(data["shop_id"])
+    path = await create_excel_by_shop(data["shop_id"], f"{'_'.join(shop_info.name.split())}__{callback_data.days}days", start_date=start_date, end_date=end_date)
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:

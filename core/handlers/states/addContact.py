@@ -27,9 +27,9 @@ async def add_phone(message: Message, state: FSMContext):
         user_id = employee['id']
         await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'])
         log.info('Сотрудник найден в базе 1С')
-        text = await texts.employee_true(employee, phone)
         client_info = await get_client_info(message.chat.id)
         admin_info = await oneC.get_employeeInfo(client_info.phone_number)
+        text = await texts.employee_true(employee, phone, admin_info, client_info.admin)
         await message.answer(text, reply_markup=getKeyboard_contact_true(superadmin=client_info.admin, employee_info=employee, admin_info=admin_info))
     else:
         log.error('Сотрудник не найден в базе 1С')

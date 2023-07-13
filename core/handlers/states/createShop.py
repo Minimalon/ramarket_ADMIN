@@ -4,11 +4,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
-from core.keyboards.inline import getKeyboard_currencies, getKeyboard_kontragent, getKeyboad_select_countries, getKeyboad_select_cities, getKeyboard_createShop, getKeyboad_orgs
+from core.keyboards.inline import getKeyboard_currencies, getKeyboard_kontragent, getKeyboad_select_countries, getKeyboad_select_cities, getKeyboard_createShop, getKeyboad_orgs, \
+    getKeyboard_contracts
 from core.oneC.api import Api
-from core.oneC.oneC import get_unique_countryes, get_cities_by_country_code, get_city_by_code, get_country_by_code, get_orgs, get_org_name
+from core.oneC.oneC import get_unique_countryes, get_cities_by_country_code, get_city_by_code, get_country_by_code, get_orgs, get_org_name, api, get_contracts_by_org
 from core.utils import texts
-from core.utils.callbackdata import Currencyes, Kontragent, Country, City, Org
+from core.utils.callbackdata import Currencyes, Kontragent, Country, City, Org, Contract
 from core.utils.states import CreateShop
 
 oneC = Api()
@@ -36,11 +37,24 @@ async def select_org(call: CallbackQuery, state: FSMContext, callback_data: Kont
     await call.message.edit_text("Выберите юридическое лицо", reply_markup=getKeyboad_orgs(await get_orgs()))
 
 
-async def select_country(call: CallbackQuery, state: FSMContext, callback_data: Org):
+async def select_contract(call: CallbackQuery, state: FSMContext, callback_data: Org):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'Выбрали организацию "{callback_data.code}"')
     await state.update_data(org_id=callback_data.code)
-    countries = await get_unique_countryes(callback_data.code)
+    contracts = await get_contracts_by_org(callback_data.code)
+    if contracts:
+        await call.message.edit_text('Выберите нужную договор', reply_markup=getKeyboard_contracts(contracts))
+    else:
+        name = [_['Наименование'] for _ in await api.get_all_orgs() if _['ИНН'] == callback_data.code][0]
+        await call.message.answer(texts.error_head + f'У данного юр.лица нет договоров {name}')
+
+
+async def select_country(call: CallbackQuery, state: FSMContext, callback_data: Contract):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info(f'Выбрали договор "{callback_data.id}"')
+    data = await state.get_data()
+    await state.update_data(contract=callback_data.id)
+    countries = await get_unique_countryes(data['org_id'])
     if countries:
         await call.message.edit_text("Выберите страну", reply_markup=getKeyboad_select_countries(countries))
     else:
@@ -85,8 +99,11 @@ async def final(message: Message, state: FSMContext):
                           '<b>Юридическое лицо</b>: <code>{org_name}</code>\n'
                           '<b>Валюта</b>: <code>{currency}</code>\n'
                           '<b>Стоимость валюты</b>: <code>{price}</code>\n'
-                          '<b>Контрагент</b>: <code>{kontragent_name}</code>').
-                         format(name=name, org_name=org_name, currency=currency, price=currency_price, kontragent_name=kontragent_name[0], city=city.name, country=country.name),
+                          '<b>Контрагент</b>: <code>{kontragent_name}</code>\n'
+                          '<b>Договор</b>: <code>{contract}</code>').
+                         format(name=name, org_name=org_name, currency=currency, price=currency_price,
+                                kontragent_name=kontragent_name[0], city=city.name, country=country.name,
+                                contract=data['contract']),
                          reply_markup=getKeyboard_createShop())
     await state.set_state(CreateShop.final)
 
@@ -94,10 +111,10 @@ async def final(message: Message, state: FSMContext):
 async def createShop(call: CallbackQuery, state: FSMContext):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     data = await state.get_data()
-    name, inn, currency, kontragent_id, cityCode, countryCode, currency_price = data['name'], data['org_id'], data['currency'], data['kontragent_id'], data['cityCode'], \
-        data['countryCode'], data['currency_price']
-    log.info(name, inn, kontragent_id, currency, currency_price, cityCode, countryCode)
-    response, response_text = await oneC.create_shop(name, inn, kontragent_id, currency, currency_price, cityCode, countryCode)
+    name, inn, currency, kontragent_id, cityCode, countryCode, currency_price, contract = data['name'], data['org_id'], data['currency'], data['kontragent_id'], data['cityCode'], \
+        data['countryCode'], data['currency_price'], data['contract']
+    log.info(name, inn, currency, kontragent_id, cityCode, countryCode, currency_price, contract)
+    response, response_text = await oneC.create_shop(name, inn, kontragent_id, currency, currency_price, cityCode, countryCode, contract)
     if response.ok:
         log.success("Магазин успешно создан")
         await call.message.edit_text('Магазин успешно создан ✅')

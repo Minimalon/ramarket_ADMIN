@@ -60,6 +60,7 @@ async def select_to_delete_users(call: CallbackQuery, state: FSMContext, callbac
             to_delete_1c.append(callback_data.id)
         await state.update_data(to_delete_1c=to_delete_1c)
     response, contacts = await api.get_all_users()
+    contacts = [_ for _ in contacts if _['Телефон'] not in ['79934055804', '79831358491']]
     await call.message.edit_text("Выберите пользователя на удаление", reply_markup=await getKeyboard_delete_users(contacts, to_delete_1c))
 
 
@@ -87,7 +88,7 @@ async def delete_contacts(call: CallbackQuery, state: FSMContext):
     log.info(f'Удалили пользователей "{data.get("to_delete")}"')
     await delete_saved_phones(str(call.message.chat.id), data.get('to_delete'))
     await state.update_data(to_delete=None)
-    await call.message.edit_text(f'Пользователи удалены "<code>{",".join(data.get("to_delete"))}</code>"')
+    await call.message.edit_text(f'Пользователи удалены "<code>{"|".join(data.get("to_delete"))}</code>"')
 
 
 async def delete_users(call: CallbackQuery, state: FSMContext, bot: Bot):
@@ -96,19 +97,19 @@ async def delete_users(call: CallbackQuery, state: FSMContext, bot: Bot):
     response, all_users = await api.get_all_users()
     phones = [_['Телефон'] for _ in all_users if _['id'] in data.get('to_delete_1c')]
     for client in await get_all_clients():
-        phones_to_delete = []
         if client.phones is None:
             continue
         for client_phone in client.phones.split(','):
             if client_phone in phones:
                 employee = await get_employeeInfo(client_phone)
                 await bot.send_message(client.chat_id, f'Данный сотрудник <code>{employee["Наименование"]}</code> с сотовым номером <code>{client_phone}</code> удалён из базы 1С')
-            log.success(f'Удалил сохранённые контакты {phones_to_delete} у пользователя {client.user_id}')
+                log.success(f'Оповестил админа "{client.chat_id}" об удалении "{employee["Наименование"]}" с сотовым номером "{client_phone}"')
     await state.update_data(to_delete_1c=None)
     for user_id in data.get('to_delete_1c'):
         await api.delete_user(user_id)
-        log.success(f'Удалил пользователя 1С {user_id}')
-    await call.message.edit_text(f'Пользователи удалены "<code>{",".join(phones)}</code>"')
+    employess_log = [[_['Телефон'], _['Наименование'], _['id']] for _ in all_users if _['id'] in data.get('to_delete_1c')]
+    log.success(f'Удалил пользователей 1С {employess_log}')
+    await call.message.edit_text(f'Пользователи удалены "<code>{"|".join(phones)}</code>"')
 
 
 if __name__ == '__main__':

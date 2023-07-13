@@ -17,11 +17,11 @@ from core.handlers import contact
 from core.handlers.basic import get_start, video_tutorial, contacts, start_delete_contacts, all_users, start_delete_users, filter_total_orders
 from core.handlers.callback import select_to_delete_contacts, select_currency, history_one_user_all_days, delete_contacts, functions_shop, select_to_delete_users, delete_users, \
     select_filter_user_history_orders
-from core.handlers.states import shops, createShop, addContact, createEmployee, historyOrders
+from core.handlers.states import shops, createShop, addContact, createEmployee, shopOperations
 from core.handlers.states.updateCurrencyPriceAll import get_price, update_price
 from core.middlewares.checkReg import CheckRegistrationCallbackMiddleware, CheckRegistrationMessageMiddleware
 from core.utils.callbackdata import SavedContact, DeleteContact, CreateEmployee, EmployeeAdmin, Country, City, Shops, Currencyes, Kontragent, RemoveShop, AddShop, CurrencyOneShop, \
-    Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops
+    Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract
 from core.utils.commands import get_commands, get_commands_admins
 from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop, CreateShop, UpdateCurrencyPriceAll, Contact, OneShopCurrency, HistoryOrdersUser, HistoryOrdersAll
 
@@ -78,35 +78,41 @@ async def start():
     # Главное меню
     dp.callback_query.register(select_currency, F.data == 'changeCurrencyPrice')
     dp.callback_query.register(createShop.select_currency, F.data == 'startCreateShop')
-    dp.callback_query.register(historyOrders.select_org, F.data == 'historyOrders')
+    dp.callback_query.register(shopOperations.select_org, F.data == 'shops_operations')
 
     # История продаж всех магазинов
-    dp.callback_query.register(historyOrders.history_total_shops, HistoryTotalShops.filter())
-    dp.callback_query.register(historyOrders.send_history_total_shops_all_days, F.data == 'history_total_shops_all_days')
-    dp.callback_query.register(historyOrders.history_period, F.data == 'history_period_total_shops')
-    dp.message.register(historyOrders.start_period, HistoryOrdersAll.start_date)
-    dp.message.register(historyOrders.end_period, HistoryOrdersAll.end_date)
-    # История продаж по магазину
-    dp.callback_query.register(historyOrders.select_country, Org.filter(), HistoryOrdersShop.org)
-    dp.callback_query.register(historyOrders.select_city, Country.filter(), HistoryOrdersShop.country)
-    dp.callback_query.register(historyOrders.select_shop, City.filter(), HistoryOrdersShop.city)
-    dp.callback_query.register(historyOrders.select_filter_order, Shops.filter(), HistoryOrdersShop.shops)
-    dp.callback_query.register(historyOrders.send_history_all_days, F.data == 'history_all_days')
-    dp.callback_query.register(historyOrders.history_period, F.data == 'history_period_shop')
-    dp.message.register(historyOrders.start_period, HistoryOrdersShop.start_date)
-    dp.message.register(historyOrders.end_period, HistoryOrdersShop.end_date)
-    dp.callback_query.register(historyOrders.history_shop_orders_by_days, HistoryShopOrdersByDays.filter())
+    dp.callback_query.register(shopOperations.history_total_shops, HistoryTotalShops.filter())
+    dp.callback_query.register(shopOperations.send_history_total_shops_all_days, F.data == 'history_total_shops_all_days')
+    dp.callback_query.register(shopOperations.history_period, F.data == 'history_period_total_shops')
+    dp.message.register(shopOperations.start_period, HistoryOrdersAll.start_date)
+    dp.message.register(shopOperations.end_period, HistoryOrdersAll.end_date)
+    # Операция с магазинами
+    dp.callback_query.register(shopOperations.select_country, Org.filter(), HistoryOrdersShop.org)
+    dp.callback_query.register(shopOperations.select_city, Country.filter(), HistoryOrdersShop.country)
+    dp.callback_query.register(shopOperations.select_shop, City.filter(), HistoryOrdersShop.city)
+    dp.callback_query.register(shopOperations.select_shop_operations, Shops.filter(), HistoryOrdersShop.shops)
+    # -- История продаж
+    dp.callback_query.register(shopOperations.select_history_orders, F.data == 'history_orders')
+    dp.callback_query.register(shopOperations.send_history_all_days, F.data == 'history_all_days')
+    dp.callback_query.register(shopOperations.history_period, F.data == 'history_period_shop')
+    dp.message.register(shopOperations.start_period, HistoryOrdersShop.start_date)
+    dp.message.register(shopOperations.end_period, HistoryOrdersShop.end_date)
+    dp.callback_query.register(shopOperations.history_shop_orders_by_days, HistoryShopOrdersByDays.filter())
+    # -- Прикрепить договор
+    dp.callback_query.register(shopOperations.select_change_contract, F.data == 'change_contract', HistoryOrdersShop.shops)
+    dp.callback_query.register(shopOperations.select_change_contract, Contract.filter(), HistoryOrdersShop.shops)
     # История продаж по пользователю
     dp.callback_query.register(select_filter_user_history_orders, F.data == 'historyOrdersOneUser')
     dp.callback_query.register(history_one_user_all_days, F.data == 'orders_user_all_days')
-    dp.callback_query.register(historyOrders.history_period, F.data == 'history_period_user')
-    dp.message.register(historyOrders.start_period, HistoryOrdersUser.start_date)
-    dp.message.register(historyOrders.end_period, HistoryOrdersUser.end_date)
-    dp.callback_query.register(historyOrders.history_user_orders_by_days, HistoryUserOrdersByDays.filter())
+    dp.callback_query.register(shopOperations.history_period, F.data == 'history_period_user')
+    dp.message.register(shopOperations.start_period, HistoryOrdersUser.start_date)
+    dp.message.register(shopOperations.end_period, HistoryOrdersUser.end_date)
+    dp.callback_query.register(shopOperations.history_user_orders_by_days, HistoryUserOrdersByDays.filter())
     # Создание магазина
     dp.callback_query.register(createShop.select_kontragent, Currencyes.filter(), CreateShop.currencies)
     dp.callback_query.register(createShop.select_org, Kontragent.filter(), CreateShop.kontragent)
-    dp.callback_query.register(createShop.select_country, Org.filter(), CreateShop.kontragent)
+    dp.callback_query.register(createShop.select_contract, Org.filter(), CreateShop.kontragent)
+    dp.callback_query.register(createShop.select_country, Contract.filter(), CreateShop.kontragent)
     dp.callback_query.register(createShop.select_city, Country.filter(), CreateShop.kontragent)
     dp.callback_query.register(createShop.enter_shop_name, City.filter(), CreateShop.kontragent)
     dp.message.register(createShop.final, CreateShop.name)
@@ -134,6 +140,11 @@ async def start():
     dp.callback_query.register(shops.enter_new_price, CurrencyOneShop.filter())
     dp.message.register(shops.chage_currency_price_one_shop, OneShopCurrency.price)
     # endregion
+
+    # Создать КонтрАгента
+    dp.callback_query.register(createShop.createShop, F.data == 'startCreateKontrAgent')
+    dp.message.register(update_price, UpdateCurrencyPriceAll.price)
+
     try:
         await dp.start_polling(bot)
     except aiogram.exceptions.TelegramNetworkError:

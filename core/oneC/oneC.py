@@ -3,8 +3,6 @@ import datetime
 from collections import namedtuple
 from operator import attrgetter
 
-import requests
-
 from core.database.ramarket_shop.db_shop import get_counts_shop_sales
 from core.oneC.api import Api
 
@@ -21,18 +19,43 @@ async def get_shop_name(phone, shop_id):
             return shop['Магазин']
 
 
-async def get_admin_shops(phone):
+async def get_user_shops(phone):
+    """
+    :param phone: Сотовый
+    :return: Список магазинов прикреплённых пользователю
+    """
     phone = str(phone)
     employee = await get_employeeInfo(phone)
     shops = [shop['idМагазин'] for shop in employee['Магазины']]
     response, all_shops = await api.get_all_shops()
-    turple = namedtuple('Shop', 'name code')
+    turple = namedtuple('Shop', 'name code org_id currency currency_price city city_code country country_code contract contract_id')
     admin_shops = []
     for shop_id in shops:
         for shop in all_shops:
             if shop['id'] == shop_id:
-                admin_shops.append(turple(shop['Наименование'], shop['id']))
+                admin_shops.append(
+                    turple(shop['Наименование'], shop['id'], shop['Org'], shop['Валюта'], shop['ВалютаКурс'], shop['Город'], shop['КодГород'], shop['Страна'], shop['КодСтраны'],
+                           shop['Договор'], shop['ДоговорID']))
     return admin_shops
+
+
+async def get_shops_by_agent_id(agent_id):
+    """
+    Возвращает список магазинов приклеплённых пользователю
+    :param agent_id: ID пользователя 1С
+    :return: namedtuple('Shop', 'name code org_id currency currency_price city city_code country country_code contract contract_id')
+    """
+    response, all_users = await api.get_all_users()
+    response, all_shops = await api.get_all_shops()
+    user_shops = [user['Магазины'] for user in all_users if user['id'] == agent_id][0]
+    user_shops = [shop for user_shop in user_shops for shop in all_shops if shop['id'] == user_shop['idМагазин']]
+    turple = namedtuple('Shop', 'name code org_id currency currency_price city city_code country country_code contract contract_id')
+    result_shops = []
+    for shop in user_shops:
+        result_shops.append(
+            turple(shop['Наименование'], shop['id'], shop['Org'], shop['Валюта'], shop['ВалютаКурс'], shop['Город'], shop['КодГород'], shop['Страна'], shop['КодСтраны'],
+                   shop['Договор'], shop['ДоговорID']))
+    return result_shops
 
 
 async def get_orgs():
@@ -125,11 +148,11 @@ async def get_shops_by_city_code_and_org_id(code: str, org_id, days_sort=14):
     :param days_sort:
     :param org_id: ID организации
     :param code: Код страны
-    :return: Возвращает namedtuple('Shop', 'name code')
+    :return: Возвращает namedtuple('Shop', 'name code org_id')
     """
     response, all_shops = await api.get_all_shops()
     shops = []
-    Shop = namedtuple('Shop', 'name code')
+    Shop = namedtuple('Shop', 'name code org_id currency currency_price city city_code country country_code contract contract_id')
     for shop in all_shops:
         if shop["Org"] != org_id:
             continue
@@ -138,18 +161,23 @@ async def get_shops_by_city_code_and_org_id(code: str, org_id, days_sort=14):
         elif not shop['КодГород'] or not shop["КодСтраны"]:
             continue
         if shop['КодГород'] == code and shop['КодГород'] not in (i.code for i in shops):
-            shops.append(Shop(shop["Наименование"], shop['id']))
+            shops.append(Shop(shop['Наименование'], shop['id'], shop['Org'], shop['Валюта'], shop['ВалютаКурс'], shop['Город'], shop['КодГород'], shop['Страна'], shop['КодСтраны'],
+                              shop['Договор'], shop['ДоговорID']))
 
     today = datetime.datetime.now().strftime('%Y-%m-%d')
     week = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=days_sort), '%Y-%m-%d')
-    Shop_count = namedtuple('Shop_count', 'name code count')
+    Shop_count = namedtuple('Shop_count', 'name code count org_id currency currency_price city city_code country country_code contract contract_id')
     result = []
     for shop in shops:
         count = await get_counts_shop_sales(shop.code, week, today)
         if count:
-            result.append(Shop_count(shop.name, shop.code, count))
+            result.append(
+                Shop_count(shop.name, shop.code, count, shop.org_id, shop.currency, shop.currency_price, shop.city, shop.city_code, shop.country, shop.country_code, shop.contract,
+                           shop.contract_id))
         else:
-            result.append(Shop_count(shop.name, shop.code, 0))
+            result.append(
+                Shop_count(shop.name, shop.code, 0, shop.org_id, shop.currency, shop.currency_price, shop.city, shop.city_code, shop.country, shop.country_code, shop.contract,
+                           shop.contract_id))
     result = sorted(result, key=attrgetter('count'), reverse=True)
     return result
 
@@ -184,13 +212,24 @@ async def get_shop_by_id(shop_id: str):
     """
     Возвращает магазин по его id
     :param shop_id: id магазина
-    :return: Возвращает namedtuple('Shop', 'name id currency currency_price country country_code city city_code')
+    :return: Возвращает namedtuple('Shop', 'name id org_id currency currency_price country country_code city city_code')
     """
     response, all_shops = await api.get_all_shops()
-    turple = namedtuple('Shop', 'name id currency currency_price country country_code city city_code')
+    turple = namedtuple('Shop', 'name code org_id currency currency_price city city_code country country_code contract contract_id')
     for shop in all_shops:
         if shop['id'] == shop_id:
-            return turple(shop["Наименование"], shop['id'], shop['Валюта'], shop['ВалютаКурс'], shop['Страна'], shop['КодСтраны'], shop['Город'], shop['КодГород'])
+            return turple(shop['Наименование'], shop['id'], shop['Org'], shop['Валюта'], shop['ВалютаКурс'], shop['Город'], shop['КодГород'], shop['Страна'], shop['КодСтраны'],
+                          shop['Договор'], shop['ДоговорID'])
+
+
+async def get_contracts_by_org(org_id: str):
+    contracts = await api.get_all_contracts()
+    turple = namedtuple('Contact', 'name id')
+    result = []
+    for contract in contracts:
+        if contract['Org'] == org_id:
+            result.append(turple(contract['Наименование'], contract['id']))
+    return result
 
 
 async def get_org_name(org_id: str):
@@ -214,4 +253,4 @@ if __name__ == '__main__':
     # a = asyncio.run(get_unique_countryes('165202396034'))
     # print(a)
     # 80, 5093
-    print(asyncio.run(get_shops_by_city_code_and_org_id('000000004', '1603007671')))
+    print(asyncio.run(get_shops_by_agent_id('7402575')))

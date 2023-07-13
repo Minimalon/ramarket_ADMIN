@@ -1,11 +1,11 @@
 import os.path
 from collections import namedtuple
 from operator import attrgetter
-from loguru import logger
 
 from aiogram import Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, FSInputFile
+from loguru import logger
 
 import config
 from core.database.queryDB import get_saved_phones, get_admins
@@ -14,6 +14,7 @@ from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts, getKe
     getKeyboard_filters_total_shop_history_orders
 from core.oneC.api import Api
 from core.utils import texts
+from core.utils.states import CreateKontragent
 
 oneC = Api()
 
@@ -47,7 +48,9 @@ async def all_users(message: Message):
         contact = namedtuple('contact', 'name id phone count_total_orders')
         contacts = []
         for user in all_users:
-            count_total_orders = len(await get_orders_by_1c_id(user['id']))
+            if user['Телефон'] in ['79934055804', '79831358491']:
+                continue
+            count_total_orders = len(await get_orders_by_1c_id(user['id'], None))
             contacts.append(contact(f"{user['Наименование']}", user['id'], user['Телефон'], count_total_orders))
         contacts = sorted(contacts, key=attrgetter('count_total_orders'), reverse=True)
         await message.answer("Выберите нужного пользователя", reply_markup=await getKeyboard_all_contacts(contacts))
@@ -63,6 +66,7 @@ async def start_delete_users(message: Message):
         log.error("Не суперадмин")
         return
     response, contacts = await oneC.get_all_users()
+    contacts = [_ for _ in contacts if _['Телефон'] not in ['79934055804', '79831358491']]
     if response.ok:
         await message.answer("Выберите нужного пользователя для удаления", reply_markup=await getKeyboard_start_delete_users(contacts))
     else:
@@ -86,3 +90,24 @@ async def filter_total_orders(message: Message):
         log.error("Не суперадмин")
         return
     await message.answer("Выберите пользователя на удаление", reply_markup=await getKeyboard_filters_total_shop_history_orders())
+
+
+async def start_create_kontragent(message: Message, state: FSMContext):
+    log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
+    log.info('Нажали "Создать Контрагента"')
+    await message.answer("Напишите полное название контрагента")
+    await state.set_state(CreateKontragent.name)
+
+
+async def create_kontragent(message: Message, state: FSMContext):
+    log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
+    log.info(f'Написали название контрагента "{message.text}"')
+    response, response_text = await oneC.create_kontragent(message.text)
+    if response.ok:
+        log.success('Контрагент создан')
+        await message.answer(f"Контрагент <b><u>{message.text}</u></b> успешно создан")
+    else:
+        log.error(response_text)
+        await message.answer(texts.error_head + 'Контрагент не создан')
+        await message.answer(texts.error_head + response_text)
+    await state.clear()

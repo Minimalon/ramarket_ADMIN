@@ -50,3 +50,7 @@ class HistoryOrdersAll(StatesGroup):
     menu = State()
     start_date = State()
     end_date = State()
+
+
+class CreateKontragent(StatesGroup):
+    name = State()

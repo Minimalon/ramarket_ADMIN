@@ -57,6 +57,7 @@ class Org(CallbackData, prefix='org'):
 
 class Shops(CallbackData, prefix='shops'):
     code: str
+    org_id: str
 
 
 class HistoryShopOrdersByDays(CallbackData, prefix='historyOrdersShopByDays'):
@@ -69,3 +70,7 @@ class HistoryUserOrdersByDays(CallbackData, prefix='historyOrdersUserByDays'):
 
 class HistoryTotalShops(CallbackData, prefix='historyTotalShops'):
     days: int
+
+
+class Contract(CallbackData, prefix='contract'):
+    id: str

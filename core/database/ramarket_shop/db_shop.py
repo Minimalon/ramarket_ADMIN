@@ -1,6 +1,6 @@
 import asyncio
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 from sqlalchemy import select, create_engine, text, distinct, func, DateTime, cast
@@ -31,9 +31,22 @@ async def get_counts_shop_sales(shop_id: str, start_date: str, end_date: str):
         return result.scalars().first()
 
 
-async def get_orders_by_1c_id(id: str):
+async def get_orders_by_1c_id(id: str, days):
     async with async_session() as session:
-        q = await session.execute(select(distinct(HistoryOrders.order_id)).where(HistoryOrders.agent_id == id))
+        if days is not None:
+            start_date = datetime.now() - timedelta(days=days)
+            print(start_date, days)
+            end_date = datetime.now() + timedelta(days=1)
+            query = (
+                select(distinct(HistoryOrders.order_id))
+                .filter(HistoryOrders.agent_id == id)
+                .filter(HistoryOrders.date >= cast(start_date, DateTime))
+                .filter(HistoryOrders.date < cast(end_date, DateTime))
+                .group_by(HistoryOrders.order_id)
+            )
+            q = await session.execute(query)
+        else:
+            q = await session.execute(select(distinct(HistoryOrders.order_id)).where(HistoryOrders.agent_id == id))
         return q.scalars().all()
 
 

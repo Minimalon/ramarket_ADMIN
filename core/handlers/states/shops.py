@@ -73,8 +73,8 @@ async def select_add_shop(call: CallbackQuery, state: FSMContext, callback_data:
     shops = [shop
              for shop in all_shops
              if shop.code not in [s[1] for s in data.get('shops')]]
-    shop_name = [shop.name for shop in all_shops if shop.code == shop_id][0]
-    log.info(f'Выбрали магазин "{shop_name}"')
+    select_shop = [shop for shop in all_shops if shop.code == shop_id][0]
+    log.info(f'Выбрали магазин для прикрепления "{select_shop.name} {select_shop.code}"')
     await call.message.edit_reply_markup(reply_markup=getKeyboard_shop_add(shops=shops, user_id=user_id, addShop=addShops))
 
 
@@ -93,7 +93,7 @@ async def add_shops(call: CallbackQuery, state: FSMContext):
         if len(addShops) == 1:
             await call.message.edit_text(f'Магазин успешно прикреплён <b>{shops[0]}</b> ✅')
         else:
-            await call.message.edit_text(f'Магазины успешно прикреплёны <b><u>{",".join(shops)}</u></b> ✅')
+            await call.message.edit_text(f'Магазины успешно прикреплёны <b><u>{"|".join(shops)}</u></b> ✅')
         await state.update_data(addShops=None)
     else:
         log.error(f'Код ответа сервера: {response.status}')
@@ -104,18 +104,15 @@ async def start_remove_shop(call: CallbackQuery, state: FSMContext):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info('Нажали "Удалить магазин"')
     data = await state.get_data()
-    response, all_shops = await Api().get_all_shops()
-    if response.ok:
-        await call.message.edit_text('Выберите магазин', reply_markup=getKeyboard_shop_remove(data.get('shops'), data.get('user_id'), data.get('removeShops')))
-    else:
-        log.error(f'Код ответа сервера: {response.status}')
-        await call.message.answer(await texts.error_server(response.status))
+    shops = await get_shops_by_agent_id(data['agent_id'])
+    await call.message.edit_text('Выберите магазин', reply_markup=getKeyboard_shop_remove(shops, data.get('user_id'), data.get('removeShops')))
 
 
 async def select_remove_shop(call: CallbackQuery, state: FSMContext, callback_data: RemoveShop):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     shop_id, user_id = callback_data.shop_id, callback_data.user_id
     data = await state.get_data()
+    shops = await get_shops_by_agent_id(data['agent_id'])
     removeShops = data.get('removeShops')
     if not removeShops:
         await state.update_data(removeShops=[shop_id])
@@ -128,15 +125,9 @@ async def select_remove_shop(call: CallbackQuery, state: FSMContext, callback_da
             removeShops.remove(callback_data.shop_id)
             await state.update_data(removeShops=removeShops)
 
-    response_all_shops, all_shops = await Api().get_all_shops()
-    shop_name = [shop['Наименование'] for shop in all_shops if shop['id'] == shop_id][0]
-    log.info(f'Выбрали магазин "{shop_name}"')
-    if response_all_shops.ok:
-        print(removeShops)
-        await call.message.edit_reply_markup(reply_markup=getKeyboard_shop_remove(shops=data.get('shops'), user_id=user_id, removeShop=removeShops))
-    else:
-        await call.message.answer(await texts.error_server(response_all_shops.status))
-        log.error(f'Магазин "{shop_name}" не прикреплён. Код ответа сервера: {response_all_shops.status}')
+    select_shop = [shop for shop in shops if shop.code == shop_id][0]
+    log.info(f'Выбрали магазин для удаления "{select_shop.name} {select_shop.code}"')
+    await call.message.edit_reply_markup(reply_markup=getKeyboard_shop_remove(shops=shops, user_id=user_id, removeShop=removeShops))
 
 
 async def remove_shops(call: CallbackQuery, state: FSMContext):
@@ -153,7 +144,7 @@ async def remove_shops(call: CallbackQuery, state: FSMContext):
         if len(removeShops) == 1:
             await call.message.edit_text(f'Магазин успешно удалён <b>{shops[0]}</b> ✅')
         else:
-            await call.message.edit_text(f'Магазины успешно удалены <b><u>{",".join(shops)}</u></b> ✅')
+            await call.message.edit_text(f'Магазины успешно удалены <b><u>{"|".join(shops)}</u></b> ✅')
         await state.update_data(removeShops=None)
     else:
         log.error(f'Код ответа сервера: {response.status}')

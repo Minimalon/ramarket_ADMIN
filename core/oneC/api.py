@@ -15,13 +15,9 @@ class Api:
             async with session.post(f"{self.adress}/GetUP", data=str(phone)) as response:
                 return await response.json()
 
-    async def create_kontragent(self, data):
-        async with aiohttp.ClientSession() as session:
-            async with session.post(f"{self.adress}/CreateKontr", data=json.dumps(data)) as response:
-                return response, await response.text()
-
-    async def create_shop(self, name, inn, kontragent_id, currency, currency_price, cityCode, countryCode):
+    async def create_shop(self, name, inn, kontragent_id, currency, currency_price, cityCode, countryCode, contract):
         """
+        :param contract: id Договора
         :param countryCode: Код страны
         :param cityCode: Код города
         :param name: Название магазина
@@ -31,8 +27,8 @@ class Api:
         :param currency_price: Стоимость валюты
         :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера
         """
-        get = rou
-        data = {"Sklad": name, "Org": inn, "Контр": kontragent_id, "Valut": currency, "KursPrice": currency_price, "KodGorod": cityCode, "KodStrana": countryCode}
+        data = {"Sklad": name, "Org": inn, "Контр": kontragent_id, "Valut": currency, "KursPrice": currency_price, "KodGorod": cityCode, "KodStrana": countryCode,
+                "Dogovor": contract}
         async with aiohttp.ClientSession() as session:
             async with session.post(f"{self.adress}/CreateTT", data=json.dumps(data)) as response:
                 return response, await response.text()
@@ -47,6 +43,27 @@ class Api:
         data = {"Name": name, "Admin": admin, "Tel": phone, "Itemc": []}
         async with aiohttp.ClientSession() as session:
             async with session.post(f"{self.adress}/CreateSotr", data=json.dumps(data)) as response:
+                return response, await response.text()
+
+    async def create_kontragent(self, name: str):
+        """
+        :param name: Название контрагента
+        :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера
+        """
+        data = {"Kontr": name, "Nomer": ""}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{self.adress}/CreateKontr", data=json.dumps(data)) as response:
+                return response, await response.text()
+
+    async def update_shop_contract(self, code: str, shop_id: str):
+        """
+        :param code: Номер договора
+        :param shop_id: ID магазина
+        :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера
+        """
+        data = {"idМагазин": shop_id, "Dogovor": code}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{self.adress}/###", data=json.dumps(data)) as response:
                 return response, await response.text()
 
     async def update_currency_all(self, currency_name: str, price: str):
@@ -86,7 +103,18 @@ class Api:
         """
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{self.adress}/GetUPAll") as response:
-                return response, await response.json()
+                response_json = sorted(await response.json(), key=lambda item: item['Наименование'])
+                return response, response_json
+
+
+    async def get_all_contracts(self):
+        """
+        Список всех контрактов
+        :return: JSON
+        """
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{self.adress}/GetALLDOG") as response:
+                return await response.json()
 
     async def get_all_kontragents(self):
         """

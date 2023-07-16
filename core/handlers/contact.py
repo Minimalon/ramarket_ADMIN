@@ -19,7 +19,7 @@ async def get_contact(message: Message, state: FSMContext):
         await save_phone(str(message.chat.id), texts.phone(message.contact.phone_number))
         shops = [[i['Магазин'], i['idМагазин']] for i in employee["Магазины"]]
         user_id = employee['id']
-        await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'])
+        await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'], agent_id=employee['id'])
         log.info('Сотрудник найден в базе 1С')
         client_info = await get_client_info(message.chat.id)
         admin_info = await oneC.get_employeeInfo(client_info.phone_number)
@@ -39,7 +39,7 @@ async def get_saved_contact(call: CallbackQuery, state: FSMContext, callback_dat
         await state.set_state(Contact.menu)
         shops = [[i['Магазин'], i['idМагазин']] for i in employee["Магазины"]]
         user_id = employee['id']
-        await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'])
+        await state.update_data(shops=shops, user_id=user_id, agent_name=employee['Наименование'], agent_id=employee['id'])
         log.info('Сотрудник найден в базе 1С')
         client_info = await get_client_info(call.message.chat.id)
         admin_info = await oneC.get_employeeInfo(client_info.phone_number)

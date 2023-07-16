@@ -105,7 +105,11 @@ async def start_remove_shop(call: CallbackQuery, state: FSMContext):
     log.info('Нажали "Удалить магазин"')
     data = await state.get_data()
     shops = await get_shops_by_agent_id(data['agent_id'])
-    await call.message.edit_text('Выберите магазин', reply_markup=getKeyboard_shop_remove(shops, data.get('user_id'), data.get('removeShops')))
+    if shops:
+        await call.message.edit_text('Выберите магазин', reply_markup=getKeyboard_shop_remove(shops, data.get('user_id'), data.get('removeShops')))
+    else:
+        await call.message.answer(texts.error_head + "Cписок прикреплённых магазинов пуст")
+
 
 
 async def select_remove_shop(call: CallbackQuery, state: FSMContext, callback_data: RemoveShop):

@@ -32,7 +32,7 @@ async def getKeyboard_contacts(contacts):
                 name = (await oneC.get_client_info(contact))['Наименование']
                 keyboard.button(text=name, callback_data=SavedContact(phone=contact))
             except TypeError:
-                keyboard.button(text=contact, callback_data=SavedContact(phone=contact))
+                keyboard.button(text=f"{contact} Удалён из базы 1С", callback_data=SavedContact(phone=contact))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 

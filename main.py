@@ -14,16 +14,18 @@ import config
 from core.database.model import init_models
 from core.database.queryDB import get_admins
 from core.handlers import contact
-from core.handlers.basic import get_start, video_tutorial, contacts, start_delete_contacts, all_users, start_delete_users, filter_total_orders
+from core.handlers.basic import get_start, video_tutorial, contacts, start_delete_contacts, all_users, start_delete_users, filter_total_orders, \
+    create_kontragent
 from core.handlers.callback import select_to_delete_contacts, select_currency, history_one_user_all_days, delete_contacts, functions_shop, select_to_delete_users, delete_users, \
-    select_filter_user_history_orders
+    select_filter_user_history_orders, start_create_kontragent
 from core.handlers.states import shops, createShop, addContact, createEmployee, shopOperations
 from core.handlers.states.updateCurrencyPriceAll import get_price, update_price
 from core.middlewares.checkReg import CheckRegistrationCallbackMiddleware, CheckRegistrationMessageMiddleware
 from core.utils.callbackdata import SavedContact, DeleteContact, CreateEmployee, EmployeeAdmin, Country, City, Shops, Currencyes, Kontragent, RemoveShop, AddShop, CurrencyOneShop, \
     Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract
 from core.utils.commands import get_commands, get_commands_admins
-from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop, CreateShop, UpdateCurrencyPriceAll, Contact, OneShopCurrency, HistoryOrdersUser, HistoryOrdersAll
+from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop, CreateShop, UpdateCurrencyPriceAll, Contact, OneShopCurrency, HistoryOrdersUser, HistoryOrdersAll, \
+    CreateKontragent
 
 
 @logger.catch()
@@ -142,8 +144,8 @@ async def start():
     # endregion
 
     # Создать КонтрАгента
-    dp.callback_query.register(createShop.createShop, F.data == 'startCreateKontrAgent')
-    dp.message.register(update_price, UpdateCurrencyPriceAll.price)
+    dp.callback_query.register(start_create_kontragent, F.data == 'startCreateKontrAgent')
+    dp.message.register(create_kontragent, CreateKontragent.name)
 
     try:
         await dp.start_polling(bot)

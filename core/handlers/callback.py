@@ -12,7 +12,7 @@ from core.oneC import api
 from core.oneC.oneC import get_employeeInfo
 from core.utils import texts
 from core.utils.callbackdata import DeleteContact, DeleteUsers
-from core.utils.states import HistoryOrdersUser
+from core.utils.states import HistoryOrdersUser, CreateKontragent
 
 api = api.Api()
 
@@ -110,6 +110,13 @@ async def delete_users(call: CallbackQuery, state: FSMContext, bot: Bot):
     employess_log = [[_['Телефон'], _['Наименование'], _['id']] for _ in all_users if _['id'] in data.get('to_delete_1c')]
     log.success(f'Удалил пользователей 1С {employess_log}')
     await call.message.edit_text(f'Пользователи удалены "<code>{"|".join(phones)}</code>"')
+
+
+async def start_create_kontragent(call: CallbackQuery, state: FSMContext):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info('Нажали "Создать Контрагента"')
+    await call.message.answer("Напишите полное название контрагента")
+    await state.set_state(CreateKontragent.name)
 
 
 if __name__ == '__main__':

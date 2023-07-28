@@ -92,13 +92,6 @@ async def filter_total_orders(message: Message):
     await message.answer("Выберите пользователя на удаление", reply_markup=await getKeyboard_filters_total_shop_history_orders())
 
 
-async def start_create_kontragent(message: Message, state: FSMContext):
-    log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
-    log.info('Нажали "Создать Контрагента"')
-    await message.answer("Напишите полное название контрагента")
-    await state.set_state(CreateKontragent.name)
-
-
 async def create_kontragent(message: Message, state: FSMContext):
     log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
     log.info(f'Написали название контрагента "{message.text}"')

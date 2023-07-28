@@ -53,12 +53,13 @@ async def select_country(call: CallbackQuery, state: FSMContext, callback_data: 
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'Выбрали договор "{callback_data.id}"')
     data = await state.get_data()
-    await state.update_data(contract=callback_data.id)
     countries = await get_unique_countryes(data['org_id'])
     if countries:
         await call.message.edit_text("Выберите страну", reply_markup=getKeyboad_select_countries(countries))
     else:
         await call.message.answer('У данного юридического лица нет зарегистрированных магазинов')
+    contract_name = [_['Наименование'] for _ in await api.get_all_contracts() if _['id'] == callback_data.id][0]
+    await state.update_data(contract=callback_data.id, contract_name=contract_name)
 
 
 async def select_city(call: CallbackQuery, callback_data: Country, state: FSMContext):
@@ -103,7 +104,7 @@ async def final(message: Message, state: FSMContext):
                           '<b>Договор</b>: <code>{contract}</code>').
                          format(name=name, org_name=org_name, currency=currency, price=currency_price,
                                 kontragent_name=kontragent_name[0], city=city.name, country=country.name,
-                                contract=data['contract']),
+                                contract=data['contract_name']),
                          reply_markup=getKeyboard_createShop())
     await state.set_state(CreateShop.final)
 

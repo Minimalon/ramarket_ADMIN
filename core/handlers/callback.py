@@ -60,7 +60,7 @@ async def select_to_delete_users(call: CallbackQuery, state: FSMContext, callbac
             to_delete_1c.append(callback_data.id)
         await state.update_data(to_delete_1c=to_delete_1c)
     response, contacts = await api.get_all_users()
-    contacts = [_ for _ in contacts if _['Телефон'] not in ['79934055804', '79831358491']]
+    contacts = [_ for _ in contacts if _['Телефон'] not in ['79934055804', ]]
     await call.message.edit_text("Выберите пользователя на удаление", reply_markup=await getKeyboard_delete_users(contacts, to_delete_1c))
 
 

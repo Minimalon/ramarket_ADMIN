@@ -48,7 +48,7 @@ async def all_users(message: Message):
         contact = namedtuple('contact', 'name id phone count_total_orders')
         contacts = []
         for user in all_users:
-            if user['Телефон'] in ['79934055804', '79831358491']:
+            if user['Телефон'] in ['79934055804', ]:
                 continue
             count_total_orders = len(await get_orders_by_1c_id(user['id'], None))
             contacts.append(contact(f"{user['Наименование']}", user['id'], user['Телефон'], count_total_orders))
@@ -58,15 +58,16 @@ async def all_users(message: Message):
         await message.answer(await texts.error_server(response))
 
 
-async def start_delete_users(message: Message):
+async def start_delete_users(message: Message, state: FSMContext):
     log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
     admin = await get_admins(message.chat.id)
+    await state.update_data(to_delete_1c=[])
     if not admin:
         await message.answer(texts.error_head + "Вы не суперадмин")
         log.error("Не суперадмин")
         return
     response, contacts = await oneC.get_all_users()
-    contacts = [_ for _ in contacts if _['Телефон'] not in ['79934055804', '79831358491']]
+    contacts = [_ for _ in contacts if _['Телефон'] not in ['79934055804', ]]
     if response.ok:
         await message.answer("Выберите нужного пользователя для удаления", reply_markup=await getKeyboard_start_delete_users(contacts))
     else:

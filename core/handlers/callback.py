@@ -85,7 +85,7 @@ async def select_to_delete_contacts(call: CallbackQuery, state: FSMContext, call
 async def delete_contacts(call: CallbackQuery, state: FSMContext):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     data = await state.get_data()
-    log.info(f'Удалили пользователей "{data.get("to_delete")}"')
+    log.success(f'Удалили пользователей "{data.get("to_delete")}"')
     await delete_saved_phones(str(call.message.chat.id), data.get('to_delete'))
     await state.update_data(to_delete=None)
     await call.message.edit_text(f'Пользователи удалены "<code>{"|".join(data.get("to_delete"))}</code>"')

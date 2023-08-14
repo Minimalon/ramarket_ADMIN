@@ -84,28 +84,23 @@ async def delete_saved_phones(chat_id: str, phones_to_delete: list):
     async with async_session() as session:
         q = await session.execute(select(Clients).filter(Clients.chat_id == chat_id))
         client = q.scalars().first()
-        if client.phones is None:
+        if client.phones is None or not client.phones:
             return False
-        elif not client.phones:
-            return False
-        result = []
-        client_phones = client.phones.split(',')
+        phones_to_save = []
+        saved_phones = client.phones.split(',')
 
-        for phone in client_phones:
-            if phone not in phones_to_delete:
-                result.append(phone)
-        if len(client_phones) == 1 and len(phones_to_delete) == 1:
+        for save_phone in saved_phones:
+            if save_phone not in phones_to_delete:
+                phones_to_save.append(save_phone)
+        if len(saved_phones) - len(phones_to_delete) == 0:  # Если удаляют все телефоны
             await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=None))
-        elif len(client_phones) - len(result) > 1:
-            await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=','.join(result)))
-        elif len(client_phones) - len(result) == 1:
-            await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=result[0]))
+        elif len(phones_to_save) > 1:  # Если на сохранение остаётся больше 1 телефона
+            await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=','.join(phones_to_save)))
+        elif len(phones_to_save) == 1:  # Если сохраняется 1 телефон
+            await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=phones_to_save[0]))
         else:
             await session.execute(update(Clients).where(Clients.chat_id == chat_id).values(phones=None))
         await session.commit()
-
-
-
 
 
 if __name__ == '__main__':

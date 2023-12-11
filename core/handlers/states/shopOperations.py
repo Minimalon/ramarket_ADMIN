@@ -210,7 +210,6 @@ async def send_history_all_days(call: CallbackQuery, state: FSMContext, bot: Bot
     path = await create_excel_by_shop(data["shop_id"], f"{'_'.join(shop_info.name.split())}__all")
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
-        await state.clear()
     else:
         await call.message.answer(texts.error_head + "Данный магазин еще не делал продаж")
         await call.answer()
@@ -224,7 +223,6 @@ async def send_history_total_shops_all_days(call: CallbackQuery, state: FSMConte
     path = await create_excel_by_shops(all_shops, 'total_orders__all')
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
-        await state.clear()
     else:
         await call.message.answer(texts.error_head + "Магазины еще не делали продаж")
         await call.answer()

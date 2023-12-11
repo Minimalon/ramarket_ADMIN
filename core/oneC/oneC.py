@@ -87,12 +87,16 @@ async def get_unique_countryes(org_id=None):
         if org_id:
             if shop['Org'] != org_id:
                 continue
+
         if shop['Город'] == "Удалить" or shop['Страна'] == "Удалить":
             continue
+
         if not shop['КодГород'] or not shop["КодСтраны"]:
             continue
+
         if shop['КодСтраны'] not in [i.code for i in countryes]:
             countryes.append(turple(shop["Страна"], shop['КодСтраны']))
+
     return countryes
 
 

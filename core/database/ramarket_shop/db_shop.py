@@ -70,7 +70,7 @@ async def create_excel_by_agent_id(agent_id: str, file_name: str, start_date=Non
         if df.empty:
             return False
         df['date'] = df['date'].dt.tz_localize(None)
-        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'seller_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
+        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
         df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
 
@@ -111,7 +111,7 @@ async def create_excel_by_shop(shop_id: str, file_name: str, start_date=None, en
         if df.empty:
             return False
         df['date'] = df['date'].dt.tz_localize(None)
-        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'seller_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
+        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
         df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
         for column in df:
@@ -146,7 +146,7 @@ async def create_excel_by_shops(shop_id: list, file_name: str, start_date=None, 
     if df.empty:
         return False
     df['date'] = df['date'].dt.tz_localize(None)
-    df = df.drop(columns=['chat_id', 'id', 'agent_id', 'seller_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
+    df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
     writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
     df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
     for column in df:

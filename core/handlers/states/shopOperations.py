@@ -212,7 +212,7 @@ async def send_history_all_days(call: CallbackQuery, state: FSMContext, bot: Bot
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
         await call.message.answer(texts.error_head + "Данный магазин еще не делал продаж")
-        await call.answer()
+    await call.answer()
 
 
 async def send_history_total_shops_all_days(call: CallbackQuery, state: FSMContext, bot: Bot):
@@ -225,7 +225,7 @@ async def send_history_total_shops_all_days(call: CallbackQuery, state: FSMConte
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
         await call.message.answer(texts.error_head + "Магазины еще не делали продаж")
-        await call.answer()
+    await call.answer()
 
 
 async def history_shop_orders_by_days(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: HistoryShopOrdersByDays):

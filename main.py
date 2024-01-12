@@ -6,16 +6,16 @@ import os
 
 import aiogram.exceptions
 from aiogram import Dispatcher, F, Bot
-from aiogram.filters import Command
+from aiogram.filters import Command, ExceptionTypeFilter
 from aiogram.fsm.storage.redis import RedisStorage
 from loguru import logger
 
 import config
 from core.database.model import init_models
 from core.database.queryDB import get_admins
-from core.handlers import contact
+from core.handlers import contact, errors_hand
 from core.handlers.basic import get_start, video_tutorial, contacts, start_delete_contacts, all_users, start_delete_users, filter_total_orders, \
-    create_kontragent
+    create_kontragent, test
 from core.handlers.callback import select_to_delete_contacts, select_currency, history_one_user_all_days, delete_contacts, functions_shop, select_to_delete_users, delete_users, \
     select_filter_user_history_orders, start_create_kontragent
 from core.handlers.states import shops, createShop, addContact, createEmployee, shopOperations
@@ -42,17 +42,21 @@ async def start():
     await get_commands_admins(bot, admins)
     await init_models()
 
-    storage = RedisStorage.from_url(config.redisStorage)
-    dp = Dispatcher(storage=storage)
+    # storage = RedisStorage.from_url(config.redisStorage)
+    # dp = Dispatcher(storage=storage)
+    dp = Dispatcher()
+
+    # Errors handlers
+    dp.errors.register(errors_hand.error_total, ExceptionTypeFilter(Exception))
 
     # MiddleWares
     dp.message.middleware(CheckRegistrationMessageMiddleware())
     dp.callback_query.middleware(CheckRegistrationCallbackMiddleware())
-
     # Команды
     dp.message.register(get_start, Command(commands=['start']))
     dp.message.register(video_tutorial, Command(commands=['help']))
     dp.message.register(contacts, Command(commands=['contacts']))
+    dp.message.register(test, Command(commands=['test']))
     dp.message.register(addContact.enter_phone, Command(commands=['add_contact']))
     dp.message.register(start_delete_contacts, Command(commands=['delete_contacts']))
     # Админ команды

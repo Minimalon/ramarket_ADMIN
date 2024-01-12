@@ -27,6 +27,8 @@ async def video_tutorial(message: Message, bot: Bot):
     path = os.path.join(config.dir_path, 'files', 'tutorial.MP4')
     await bot.send_video(message.chat.id, video=FSInputFile(path))
 
+async def test(message: Message):
+    raise ValueError('123')
 
 async def contacts(message: Message):
     contacts = await get_saved_phones(chat_id=str(message.chat.id))

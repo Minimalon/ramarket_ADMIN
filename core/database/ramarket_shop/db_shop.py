@@ -71,7 +71,7 @@ async def create_excel_by_agent_id(agent_id: str, file_name: str, start_date=Non
             return False
         df['date'] = df['date'].dt.tz_localize(None)
         df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
-        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency', 'seller_id', 'payment_name', 'product_name', 'price',
+        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency',  'payment_name', 'product_name', 'price',
                         'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name', 'client_phone', 'client_mail']
         df = df[column_order]
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
@@ -115,7 +115,7 @@ async def create_excel_by_shop(shop_id: str, file_name: str, start_date=None, en
             return False
         df['date'] = df['date'].dt.tz_localize(None)
         df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
-        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency', 'seller_id', 'payment_name', 'product_name', 'price',
+        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency', 'payment_name', 'product_name', 'price',
                         'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name', 'client_phone', 'client_mail']
         df = df[column_order]
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
@@ -153,7 +153,7 @@ async def create_excel_by_shops(shop_id: list, file_name: str, start_date=None, 
         return False
     df['date'] = df['date'].dt.tz_localize(None)
     df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
-    column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency', 'seller_id', 'payment_name', 'product_name', 'price',
+    column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency', 'payment_name', 'product_name', 'price',
                     'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name', 'client_phone', 'client_mail']
     df = df[column_order]
     writer = pd.ExcelWriter(path_file, engine="xlsxwriter")

@@ -13,8 +13,10 @@ Base = declarative_base()
 
 class OrderStatus(enum.Enum):
     sale = 1  # Продали
-    delete = 2  # Удалили в течении суток
-    cancel = 3  # Отменили
+    prepare_delete = 2  # Подготовка к удалению
+    delete = 3  # Удалён в лукере
+    cancel = 4  # Отменили
+    change_date = 5  # Изменили дату в лукере и в бд
 
 
 class HistoryOrders(Base):
@@ -47,4 +49,4 @@ class HistoryOrders(Base):
     client_name = Column(String(100))
     client_phone = Column(String(20))
     client_mail = Column(String(100))
-    status = Column(Enum(OrderStatus), default=OrderStatus.sale)
+    status = Column(Enum(OrderStatus, native_enum=False), default=OrderStatus.sale)

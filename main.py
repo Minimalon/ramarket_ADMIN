@@ -22,10 +22,10 @@ from core.handlers.states import shops, createShop, addContact, createEmployee, 
 from core.handlers.states.updateCurrencyPriceAll import get_price, update_price
 from core.middlewares.checkReg import CheckRegistrationCallbackMiddleware, CheckRegistrationMessageMiddleware
 from core.utils.callbackdata import SavedContact, DeleteContact, CreateEmployee, EmployeeAdmin, Country, City, Shops, Currencyes, Kontragent, RemoveShop, AddShop, CurrencyOneShop, \
-    Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract
+    Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract, SelectOrder
 from core.utils.commands import get_commands, get_commands_admins
 from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop, CreateShop, UpdateCurrencyPriceAll, Contact, OneShopCurrency, HistoryOrdersUser, HistoryOrdersAll, \
-    CreateKontragent
+    CreateKontragent, ChangeOrderDate
 
 
 @logger.catch()
@@ -42,9 +42,9 @@ async def start():
     await get_commands_admins(bot, admins)
     await init_models()
 
-    # storage = RedisStorage.from_url(config.redisStorage)
-    # dp = Dispatcher(storage=storage)
-    dp = Dispatcher()
+    storage = RedisStorage.from_url(config.redisStorage)
+    dp = Dispatcher(storage=storage)
+    # dp = Dispatcher()
 
     # Errors handlers
     dp.errors.register(errors_hand.error_total, ExceptionTypeFilter(Exception))
@@ -106,7 +106,11 @@ async def start():
     dp.callback_query.register(shopOperations.history_shop_orders_by_days, HistoryShopOrdersByDays.filter())
     # -- Прикрепить договор
     dp.callback_query.register(shopOperations.select_change_contract, F.data == 'change_contract', HistoryOrdersShop.shops)
-    dp.callback_query.register(shopOperations.select_change_contract, Contract.filter(), HistoryOrdersShop.shops)
+    # -- Изменить дату чека
+    dp.callback_query.register(shopOperations.get_order_id, F.data == 'change_date_order')
+    dp.message.register(shopOperations.accept_order_id, ChangeOrderDate.orderID)
+    dp.message.register(shopOperations.msg_accept_new_date, ChangeOrderDate.newDate)
+    dp.callback_query.register(shopOperations.change_date_select_order, ChangeOrderDate.orderID, SelectOrder.filter())
     # История продаж по пользователю
     dp.callback_query.register(select_filter_user_history_orders, F.data == 'historyOrdersOneUser')
     dp.callback_query.register(history_one_user_all_days, F.data == 'orders_user_all_days')
@@ -150,6 +154,8 @@ async def start():
     # Создать КонтрАгента
     dp.callback_query.register(start_create_kontragent, F.data == 'startCreateKontrAgent')
     dp.message.register(create_kontragent, CreateKontragent.name)
+
+
 
     try:
         await dp.start_polling(bot)

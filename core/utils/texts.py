@@ -7,6 +7,7 @@ from funcy import str_join
 from core.database.ramarket_shop.db_shop import get_orders_by_1c_id
 
 error_head = f"➖➖🚨ОШИБКА🚨➖➖\n"
+success_head = f"➖➖✅Успешно✅➖➖\n"
 
 
 async def error_server(status):

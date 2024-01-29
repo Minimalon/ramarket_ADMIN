@@ -30,7 +30,7 @@ async def update_client_info(**kwargs):
         await session.commit()
 
 
-async def get_client_info(chat_id):
+async def get_client_info(chat_id) -> Clients:
     async with async_session() as session:
         q = await session.execute(select(Clients).filter(Clients.chat_id == str(chat_id)))
         client = q.scalars().first()

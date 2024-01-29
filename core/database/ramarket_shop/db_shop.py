@@ -3,17 +3,46 @@ import os
 from datetime import datetime, timedelta
 
 import pandas as pd
-from sqlalchemy import select, create_engine, text, distinct, func, DateTime, cast
+from sqlalchemy import select, create_engine, text, distinct, func, DateTime, cast, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 import config
-from core.database.ramarket_shop.model import HistoryOrders
+from core.database.ramarket_shop.model import HistoryOrders, OrderStatus
 
 engine = create_async_engine(
     f"postgresql+asyncpg://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
 Base = declarative_base()
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+
+async def get_orders_by_shop_id(shop_id: str) -> list[HistoryOrders]:
+    async with async_session() as session:
+        query = select(HistoryOrders).filter(HistoryOrders.shop_id == shop_id)
+        result = await session.execute(query)
+        return result.scalars().all()
+
+
+async def get_orders_by_order_id_and_shop_id(order_id: str, shop_id: str) -> HistoryOrders | None:
+    async with async_session() as session:
+        query = select(HistoryOrders).filter(HistoryOrders.order_id == order_id, HistoryOrders.shop_id == shop_id)
+        result = await session.execute(query)
+        return result.scalars().all()
+
+
+async def update_date_order(order_id: str, old_date: datetime, new_date: datetime) -> None:
+    async with async_session() as session:
+        await session.execute(
+            update(HistoryOrders).
+            where(
+                (HistoryOrders.order_id == order_id) &
+                (func.to_char(HistoryOrders.date, 'YYYYMMDDHH24MI') == old_date.strftime('%Y%m%d%H%M'))
+            ).
+            values(
+                date=new_date,
+                status=OrderStatus.change_date
+            ))
+        await session.commit()
 
 
 async def get_counts_shop_sales(shop_id: str, start_date: str, end_date: str):
@@ -71,7 +100,7 @@ async def create_excel_by_agent_id(agent_id: str, file_name: str, start_date=Non
             return False
         df['date'] = df['date'].dt.tz_localize(None)
         df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
-        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency',  'payment_name', 'product_name', 'price',
+        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency', 'payment_name', 'product_name', 'price',
                         'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name', 'client_phone', 'client_mail']
         df = df[column_order]
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")

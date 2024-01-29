@@ -1,3 +1,5 @@
+import datetime
+import os.path
 import re
 
 from aiogram import Bot
@@ -5,14 +7,16 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile, Message
 from loguru import logger
 
+import config
 from core.database.queryDB import get_client_info
-from core.database.ramarket_shop.db_shop import create_excel_by_shop, create_excel_by_agent_id, create_excel_by_shops
+from core.database.ramarket_shop.db_shop import create_excel_by_shop, create_excel_by_agent_id, create_excel_by_shops, get_orders_by_order_id_and_shop_id, update_date_order
 from core.keyboards.inline import getKeyboad_select_countries, getKeyboad_select_cities, getKeyboad_select_shop, getKeyboard_filters_history_orders, getKeyboad_orgs, \
-    getKeyboard_shops_operations, getKeyboard_contracts
+    getKeyboard_shops_operations, getKeyboard_contracts, kb_select_order
 from core.oneC.oneC import *
 from core.utils import texts
-from core.utils.callbackdata import Country, City, Shops, Org, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract
-from core.utils.states import HistoryOrdersShop, HistoryOrdersUser, HistoryOrdersAll
+from core.utils.Spreadsheet import Spreadsheet
+from core.utils.callbackdata import Country, City, Shops, Org, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract, SelectOrder
+from core.utils.states import HistoryOrdersShop, HistoryOrdersUser, HistoryOrdersAll, ChangeOrderDate
 
 
 async def select_org(call: CallbackQuery, state: FSMContext):
@@ -270,3 +274,70 @@ async def history_total_shops(call: CallbackQuery, bot: Bot, callback_data: Hist
     else:
         await call.message.answer(texts.error_head + f"Магазины не делали продаж за данный период времени с {start_date} по {end_date}")
     await call.answer()
+
+
+async def get_order_id(call: CallbackQuery, state: FSMContext):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info('Нажали кнопку "Изменить дату чека"')
+    await call.message.answer('Напишите номер заказа')
+    await state.set_state(ChangeOrderDate.orderID)
+
+
+async def accept_order_id(message: Message, state: FSMContext):
+    log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
+    log.info(f'Прислал номер заказа "{message.text}"')
+    data = await state.get_data()
+    orders = await get_orders_by_order_id_and_shop_id(message.text, data['shop_id'])
+    if len(orders) == 0:
+        await message.answer(texts.error_head + 'Заказ не найден')
+        return
+    elif len(orders) == 1:
+        await message.answer("Введите новую дату чека по <b><u>московскому времени</u></b>(+03)\n"
+                             "Формат: дд.мм.гггг чч:мм:сс\n"
+                             "Например: 01.01.2022 00:00:00")
+        date = orders[0].date + datetime.timedelta(hours=3)
+        await state.update_data(order_id=message.text, order_date=datetime.datetime.strftime(date, '%Y%m%d%H%M%S'))
+        await state.set_state(ChangeOrderDate.newDate)
+    elif len(orders) > 1:
+        await message.answer("Выберите заказ:", reply_markup=kb_select_order(orders))
+
+
+async def msg_accept_new_date(message: Message, state: FSMContext):
+    log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
+    log.info(f'Прислал новую дату чека "{message.text}"')
+    data = await state.get_data()
+    new_date = datetime.datetime.strptime(message.text, '%d.%m.%Y %H:%M:%S')
+    response, text = await api.post_change_date_doc(data['order_id'], data['order_date'], str(new_date))
+    if response.ok:
+        await update_date_order(
+            order_id=data['order_id'],
+            old_date=datetime.datetime.strptime(data['order_date'], '%Y%m%d%H%M%S'),
+            new_date=new_date,
+        )
+        config_file = os.path.join(config.dir_path, 'core', 'utils', 'pythonapp.json')
+        if config.develope_mode:
+            ss = Spreadsheet(config_file, 'test_sales', spreadsheetId='1dWAQdnsfXoebDNegKL6kNE77OgwOIP0Df87o4DlhF7s')
+        else:
+            ss = Spreadsheet(config_file, 'sales', spreadsheetId='1dWAQdnsfXoebDNegKL6kNE77OgwOIP0Df87o4DlhF7s')
+        old_date = datetime.datetime.strptime(data['order_date'], '%Y%m%d%H%M%S')
+        ss.change_date_row(data['order_id'], new_date, old_date)
+        await message.answer(texts.success_head + 'Дата чека изменена')
+        log.success(f'Изменил дату чека "{data["order_id"]}" на "{new_date}"')
+    else:
+        await message.answer(texts.error_head + text)
+
+
+async def change_date_select_order(call: CallbackQuery, state: FSMContext, callback_data: SelectOrder):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info(f'Выбрали заказ для изменения даты чека "{callback_data.order_id} | {callback_data.date}"')
+    client_info = await get_client_info(call.message.chat.id)
+    if not client_info.admin:
+        shops = await get_user_shops(client_info.phone_number)
+        if callback_data.shop_id not in [_.code for _ in shops]:
+            await call.message.answer(texts.error_head + 'Заказ не принадлежит вашему магазину')
+            return
+    await call.message.answer("Введите новую дату чека по <b><u>московскому времени</u></b>(+03)\n"
+                              "Формат: дд.мм.гггг чч:мм:сс\n"
+                              "Например: 01.01.2022 00:00:00")
+    await state.update_data(order_id=callback_data.order_id, order_date=callback_data.date)
+    await state.set_state(ChangeOrderDate.newDate)

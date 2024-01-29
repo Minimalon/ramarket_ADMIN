@@ -74,3 +74,21 @@ class HistoryTotalShops(CallbackData, prefix='historyTotalShops'):
 
 class Contract(CallbackData, prefix='contract'):
     id: str
+
+
+class Year(CallbackData, prefix='Year'):
+    Year: str
+
+
+class Month(CallbackData, prefix='Month'):
+    Month: str
+
+
+class Day(CallbackData, prefix='Day'):
+    Day: str
+
+
+class SelectOrder(CallbackData, prefix='select_order'):
+    order_id: str
+    date: str  # %Y%m%d%H%M%S
+    shop_id: str

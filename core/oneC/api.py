@@ -106,7 +106,6 @@ class Api:
                 response_json = sorted(await response.json(), key=lambda item: item['Наименование'])
                 return response, response_json
 
-
     async def get_all_contracts(self):
         """
         Список всех контрактов
@@ -169,6 +168,19 @@ class Api:
         data = {"MagKV": [{"Sklad": shop_id, "Kurs": currency_price}, ]}
         async with aiohttp.ClientSession() as session:
             async with session.post(f"{self.adress}/ChangeKursMag", data=json.dumps(data)) as response:
+                return response, await response.text()
+
+    async def post_change_date_doc(self, order_id: str, date_doc: str, new_date: str):
+        """
+        Меняем дату документа
+        :param order_id: ID документа
+        :param date_doc: Дата документа
+        :param new_date: Новая дата документа
+        :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера
+        """
+        data = {"Номер": order_id, "Дата": date_doc, "НоваяДата": new_date}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{self.adress}/ChangeDateDoc", data=json.dumps(data)) as response:
                 return response, await response.text()
 
 

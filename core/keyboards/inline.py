@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from core.database.ramarket_shop.model import HistoryOrders
 from core.oneC.api import Api
 from core.utils.callbackdata import *
 
@@ -20,6 +23,7 @@ def getKeyboard_shops_operations():
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='История продаж', callback_data='history_orders')
     keyboard.button(text='Изменить договор', callback_data='change_contract')
+    keyboard.button(text='Изменить дату чека', callback_data='change_date_order')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -265,5 +269,19 @@ def getKeyboard_shop_change_currency_price(data):
     keyboard = InlineKeyboardBuilder()
     for shop_name, shop_id in shops:
         keyboard.button(text=shop_name, callback_data=CurrencyOneShop(shop_id=shop_id))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
+def kb_select_order(orders: list[HistoryOrders]):
+    keyboard = InlineKeyboardBuilder()
+    for order in orders:
+        date = order.date + timedelta(hours=3)
+        keyboard.button(text=f'{date.strftime("%d.%m.%Y %H:%M:%S")} | {order.order_id}',
+                        callback_data=SelectOrder(
+                            order_id=order.order_id,
+                            date=date.strftime('%Y%m%d%H%M%S'),
+                            shop_id=str(order.shop_id),
+                        ))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()

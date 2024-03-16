@@ -14,7 +14,6 @@ from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts, getKe
     getKeyboard_filters_total_shop_history_orders
 from core.oneC.api import Api
 from core.utils import texts
-from core.utils.states import CreateKontragent
 
 oneC = Api()
 
@@ -27,8 +26,10 @@ async def video_tutorial(message: Message, bot: Bot):
     path = os.path.join(config.dir_path, 'files', 'tutorial.MP4')
     await bot.send_video(message.chat.id, video=FSInputFile(path))
 
+
 async def test(message: Message):
     raise ValueError('123')
+
 
 async def contacts(message: Message):
     contacts = await get_saved_phones(chat_id=str(message.chat.id))
@@ -69,7 +70,8 @@ async def start_delete_users(message: Message, state: FSMContext):
         log.error("Не суперадмин")
         return
     response, contacts = await oneC.get_all_users()
-    contacts = [_ for _ in contacts if _['Телефон'] not in ['79934055804', ]]
+    contacts = [_ for _ in contacts
+                if _['Телефон'] not in ['79934055804', ] and _['id'] == '7402672']
     if response.ok:
         await message.answer("Выберите нужного пользователя для удаления", reply_markup=await getKeyboard_start_delete_users(contacts))
     else:

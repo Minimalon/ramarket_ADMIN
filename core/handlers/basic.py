@@ -71,7 +71,7 @@ async def start_delete_users(message: Message, state: FSMContext):
         return
     response, contacts = await oneC.get_all_users()
     contacts = [_ for _ in contacts
-                if _['Телефон'] not in ['79934055804', ] and _['id'] == '7402672']
+                if _['Телефон'] not in ['79934055804', ] and _['id'] != '7402672']
     if response.ok:
         await message.answer("Выберите нужного пользователя для удаления", reply_markup=await getKeyboard_start_delete_users(contacts))
     else:

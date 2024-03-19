@@ -203,7 +203,7 @@ def getKeyboad_select_shop(shops):
 
 def getKeyboard_currencies():
     keyboard = InlineKeyboardBuilder()
-    keyboard.button(text='USDV', callback_data=Currencyes(currency='USDV'))
+    keyboard.button(text='USD', callback_data=Currencyes(currency='USDV'))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 

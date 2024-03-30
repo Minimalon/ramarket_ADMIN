@@ -30,6 +30,7 @@ async def select_org(call: CallbackQuery, state: FSMContext):
         shops = await get_user_shops(client_info.phone_number)
         if not shops:
             await call.message.edit_text(texts.error_head + 'У вас не привязано ни одного магазина')
+            log.error('У вас не привязано ни одного магазина')
         await state.set_state(HistoryOrdersShop.shops)
         await call.message.edit_text("Выберите магазин", reply_markup=getKeyboad_select_shop(shops))
 
@@ -84,6 +85,7 @@ async def select_change_contract(call: CallbackQuery, state: FSMContext):
     else:
         name = [_['Наименование'] for _ in await api.get_all_orgs() if _['ИНН'] == data['org_id']][0]
         await call.message.answer(texts.error_head + f'У данного юр.лица нет договоров {name}', reply_markup=getKeyboard_contracts(contracts))
+        log.error('У данного юр.лица нет договоров')
 
 
 async def change_contract(call: CallbackQuery, state: FSMContext, callback_data: Contract):
@@ -96,6 +98,7 @@ async def change_contract(call: CallbackQuery, state: FSMContext, callback_data:
     else:
         name = [_['Наименование'] for _ in await api.get_all_orgs() if _['ИНН'] == data['org_id']][0]
         await call.message.answer(texts.error_head + f'У данного юр.лица нет договоров {name}', reply_markup=getKeyboard_contracts(contracts))
+        log.error(f'У данного юр.лица нет договоров {name}')
 
 
 async def select_history_orders(call: CallbackQuery):
@@ -183,6 +186,7 @@ async def end_period(message: Message, state: FSMContext, bot: Bot):
             if path:
                 await bot.send_document(message.chat.id, document=FSInputFile(path))
             else:
+                log.error(f"Данный магазин не делал продаж за данный период времени с {data['start_period']} по {message.text}")
                 await message.answer(texts.error_head + f"Данный магазин не делал продаж за данный период времени с {data['start_period']} по {message.text}")
         elif re.findall('HistoryOrdersUser', str(await state.get_state())):
             file_name = f"{'_'.join(data['agent_name'].split())}__{start_date}_{end_date}"
@@ -190,6 +194,7 @@ async def end_period(message: Message, state: FSMContext, bot: Bot):
             if path:
                 await bot.send_document(message.chat.id, document=FSInputFile(path))
             else:
+                log.error(f"Данный пользователь не делал продаж за данный период времени с {data['start_period']} по {message.text}")
                 await message.answer(texts.error_head + f"Данный пользователь не делал продаж за данный период времени с {data['start_period']} по {message.text}")
         elif re.findall('HistoryOrdersAll', str(await state.get_state())):
             response, all_shops = await api.get_all_shops()
@@ -199,6 +204,7 @@ async def end_period(message: Message, state: FSMContext, bot: Bot):
             if path:
                 await bot.send_document(message.chat.id, document=FSInputFile(path))
             else:
+                log.error(f"Магазины не делали продаж за данный период времени с {data['start_period']} по {message.text}")
                 await message.answer(texts.error_head + f"Магазины не делали продаж за данный период времени с {data['start_period']} по {message.text}")
     else:
         await message.answer("{error}Неверно ввели дату\nПопробуйте снова\nПример: <b><u>2023-06-12</u></b>".format(error=texts.error_head))
@@ -215,6 +221,7 @@ async def send_history_all_days(call: CallbackQuery, state: FSMContext, bot: Bot
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
+        log.error(f"Данный магазин еще не делал продаж")
         await call.message.answer(texts.error_head + "Данный магазин еще не делал продаж")
     await call.answer()
 
@@ -228,6 +235,7 @@ async def send_history_total_shops_all_days(call: CallbackQuery, state: FSMConte
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
+        log.error("Магазины еще не делали продаж")
         await call.message.answer(texts.error_head + "Магазины еще не делали продаж")
     await call.answer()
 
@@ -243,6 +251,7 @@ async def history_shop_orders_by_days(call: CallbackQuery, state: FSMContext, bo
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
+        log.error(f"Данный магазин не делал продаж за данный период времени с {start_date} по {end_date}")
         await call.message.answer(texts.error_head + f"Данный магазин не делал продаж за данный период времени с {start_date} по {end_date}")
     await call.answer()
 
@@ -257,6 +266,7 @@ async def history_user_orders_by_days(call: CallbackQuery, state: FSMContext, bo
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
+        log.error(f"Данный пользователь не делал продаж за данный период времени с {start_date} по {end_date}")
         await call.message.answer(texts.error_head + f"Данный пользователь не делал продаж за данный период времени с {start_date} по {end_date}")
     await call.answer()
 
@@ -272,6 +282,7 @@ async def history_total_shops(call: CallbackQuery, bot: Bot, callback_data: Hist
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
+        log.error(f"Магазины не делали продаж за данный период времени с {start_date} по {end_date}")
         await call.message.answer(texts.error_head + f"Магазины не делали продаж за данный период времени с {start_date} по {end_date}")
     await call.answer()
 
@@ -293,6 +304,7 @@ async def accept_order_id(message: Message, state: FSMContext):
              f'Номер заказа "{message.text}" по магазину "{data["shop_id"]}"')
     if len(orders) == 0:
         await message.answer(texts.error_head + 'Заказ не найден')
+        log.error('Заказ не найден')
         return
     elif len(orders) == 1:
         await message.answer("Введите новую дату чека по <b><u>московскому времени</u></b>(+03)\n"
@@ -327,6 +339,7 @@ async def msg_accept_new_date(message: Message, state: FSMContext):
         await message.answer(texts.success_head + 'Дата чека изменена')
         log.success(f'Изменил дату чека "{data["order_id"]}" на "{new_date}"')
     else:
+        log.error(text)
         await message.answer(texts.error_head + text)
 
 
@@ -338,6 +351,7 @@ async def change_date_select_order(call: CallbackQuery, state: FSMContext, callb
         shops = await get_user_shops(client_info.phone_number)
         if callback_data.shop_id not in [_.code for _ in shops]:
             await call.message.answer(texts.error_head + 'Заказ не принадлежит вашему магазину')
+            log.error('Заказ не принадлежит вашему магазину')
             return
     await call.message.answer("Введите новую дату чека по <b><u>московскому времени</u></b>(+03)\n"
                               "Формат: дд.мм.гггг чч:мм:сс\n"

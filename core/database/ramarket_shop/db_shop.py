@@ -23,9 +23,10 @@ async def get_orders_by_shop_id(shop_id: str) -> list[HistoryOrders]:
         return result.scalars().all()
 
 
-async def get_orders_by_order_id_and_shop_id(order_id: str, shop_id: str) -> HistoryOrders | None:
+async def get_orders_by_order_id_and_shop_id(order_id: str, shop_id: str) -> list[HistoryOrders] | None:
     async with async_session() as session:
-        query = select(HistoryOrders).filter(HistoryOrders.order_id == order_id, HistoryOrders.shop_id == shop_id)
+        query = select(HistoryOrders).filter(HistoryOrders.order_id == order_id,
+                                             HistoryOrders.shop_id == shop_id)
         result = await session.execute(query)
         return result.scalars().all()
 

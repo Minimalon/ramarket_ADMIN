@@ -287,8 +287,10 @@ async def accept_order_id(message: Message, state: FSMContext):
     log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
     log.info(f'Прислал номер заказа "{message.text}"')
     data = await state.get_data()
-    orders = await get_orders_by_order_id_and_shop_id(message.text, data['shop_id'])
-    log.info(f'Найдено {len(orders)} заказов. Номер заказа "{message.text}" по магазину "{data["shop_id"]}"')
+    orders = await get_orders_by_order_id_and_shop_id(order_id=message.text.strip(),
+                                                      shop_id=data['shop_id'])
+    log.info(f'Найдено {len(orders)} заказов. '
+             f'Номер заказа "{message.text}" по магазину "{data["shop_id"]}"')
     if len(orders) == 0:
         await message.answer(texts.error_head + 'Заказ не найден')
         return

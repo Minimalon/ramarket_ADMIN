@@ -322,7 +322,7 @@ async def msg_accept_new_date(message: Message, state: FSMContext):
     log.info(f'Прислал новую дату чека "{message.text}"')
     data = await state.get_data()
     new_date = datetime.datetime.strptime(message.text, '%d.%m.%Y %H:%M:%S')
-    response, text = await api.post_change_date_doc(data['order_id'], data['order_date'], str(new_date))
+    response, text = await api.post_change_date_doc(data['order_id'], data['order_date'], new_date.strftime('%Y%m%d%H%M%S'))
     if response.ok:
         await update_date_order(
             order_id=data['order_id'],

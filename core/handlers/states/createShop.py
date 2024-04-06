@@ -1,13 +1,13 @@
-from decimal import Decimal
-
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from loguru import logger
 
-from core.keyboards.inline import getKeyboard_currencies, getKeyboard_kontragent, getKeyboad_select_countries, getKeyboad_select_cities, getKeyboard_createShop, getKeyboad_orgs, \
+from core.keyboards.inline import getKeyboard_currencies, getKeyboard_kontragent, getKeyboad_select_countries, \
+    getKeyboad_select_cities, getKeyboard_createShop, getKeyboad_orgs, \
     getKeyboard_contracts
 from core.oneC.api import Api
-from core.oneC.oneC import get_unique_countryes, get_cities_by_country_code, get_city_by_code, get_country_by_code, get_orgs, get_org_name, api, get_contracts_by_org
+from core.oneC.oneC import get_unique_countryes, get_cities_by_country_code, get_city_by_code, get_country_by_code, \
+    get_orgs, get_org_name, api, get_contracts_by_org
 from core.utils import texts
 from core.utils.callbackdata import Currencyes, Kontragent, Country, City, Org, Contract
 from core.utils.states import CreateShop
@@ -53,7 +53,8 @@ async def select_country(call: CallbackQuery, state: FSMContext, callback_data: 
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'Выбрали договор "{callback_data.id}"')
     data = await state.get_data()
-    countries = await get_unique_countryes(data['org_id'])
+    # countries = await get_unique_countryes(data['org_id'])
+    countries = await get_unique_countryes()
     if countries:
         await call.message.edit_text("Выберите страну", reply_markup=getKeyboad_select_countries(countries))
     else:
@@ -85,11 +86,13 @@ async def final(message: Message, state: FSMContext):
     log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
     log.info(f'Написали название магазина "{message.text}"')
     data = await state.get_data()
-    name, inn, currency, kontragent_id, cityCode, countryCode, currency_price = message.text, data['org_id'], data['currency'], data['kontragent_id'], data['cityCode'], \
+    name, inn, currency, kontragent_id, cityCode, countryCode, currency_price = message.text, data['org_id'], data[
+        'currency'], data['kontragent_id'], data['cityCode'], \
         data['countryCode'], data['currency_price']
     await state.update_data(name=name)
     city, country = (await get_city_by_code(cityCode)), (await get_country_by_code(countryCode))
-    kontragent_name = [agent['Наименование'] for agent in await oneC.get_all_kontragents() if agent['Id'] == kontragent_id]
+    kontragent_name = [agent['Наименование'] for agent in await oneC.get_all_kontragents() if
+                       agent['Id'] == kontragent_id]
     org_name = await get_org_name(inn)
     await message.answer(('ℹ️Информацияℹ️\n'
                           '➖➖➖➖➖➖➖➖➖➖➖➖➖➖➖\n'
@@ -111,10 +114,12 @@ async def final(message: Message, state: FSMContext):
 async def createShop(call: CallbackQuery, state: FSMContext):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     data = await state.get_data()
-    name, inn, currency, kontragent_id, cityCode, countryCode, currency_price, contract = data['name'], data['org_id'], data['currency'], data['kontragent_id'], data['cityCode'], \
+    name, inn, currency, kontragent_id, cityCode, countryCode, currency_price, contract = data['name'], data['org_id'], \
+    data['currency'], data['kontragent_id'], data['cityCode'], \
         data['countryCode'], data['currency_price'], data['contract']
     log.info(name, inn, currency, kontragent_id, cityCode, countryCode, currency_price, contract)
-    response, response_text = await oneC.create_shop(name, inn, kontragent_id, currency, currency_price, cityCode, countryCode, contract)
+    response, response_text = await oneC.create_shop(name, inn, kontragent_id, currency, currency_price, cityCode,
+                                                     countryCode, contract)
     if response.ok:
         log.success("Магазин успешно создан")
         await call.message.edit_text('Магазин успешно создан ✅')

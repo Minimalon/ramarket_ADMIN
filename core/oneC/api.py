@@ -17,6 +17,7 @@ class Api:
 
     async def create_shop(self, name, inn, kontragent_id, currency, currency_price, cityCode, countryCode, contract):
         """
+        Создать магазин
         :param contract: id Договора
         :param countryCode: Код страны
         :param cityCode: Код города
@@ -35,6 +36,7 @@ class Api:
 
     async def create_employ(self, name: str, admin: bool, phone: str):
         """
+        Создать сотрудника
         :param name: ФИО сотрудника
         :param admin: булевое значение
         :param phone: Сотовый сотрудника
@@ -47,6 +49,7 @@ class Api:
 
     async def create_kontragent(self, name: str):
         """
+        Создать контрагента
         :param name: Название контрагента
         :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера
         """
@@ -57,6 +60,7 @@ class Api:
 
     async def update_shop_contract(self, code: str, shop_id: str):
         """
+        Поменять договор у магазина
         :param code: Номер договора
         :param shop_id: ID магазина
         :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера

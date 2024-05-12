@@ -94,16 +94,25 @@ async def create_excel_by_agent_id(agent_id: str, file_name: str, start_date=Non
                 f'AND date >= \'{start_date}\' AND date < \'{end_date}\' '
                 f'order by date DESC')
         else:
-            query = text(f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE agent_id = \'{agent_id}\' order by date DESC')
-        engine = create_engine(f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
+            query = text(
+                f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE agent_id = \'{agent_id}\' order by date DESC')
+        engine = create_engine(
+            f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
         df = pd.read_sql(query, engine.connect())
         if df.empty:
             return False
         df['date'] = df['date'].dt.tz_localize(None)
-        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
-        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency', 'payment_name', 'product_name', 'price',
-                        'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name', 'client_phone', 'client_mail']
+        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType',
+                              'country_code', 'city_code'])
+        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name',
+                        'shop_currency', 'payment_name', 'product_name', 'price',
+                        'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name',
+                        'client_phone', 'client_mail']
         df = df[column_order]
+        df[['sum_usd', 'sum_rub', 'sum_try', 'price']] = df[
+            ['sum_usd', 'sum_rub', 'sum_try', 'price']].astype(float)
+        df[['quantity']] = df[
+            ['quantity']].astype(int)
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
         df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
 
@@ -138,16 +147,25 @@ async def create_excel_by_shop(shop_id: str, file_name: str, start_date=None, en
                 f'AND date >= \'{start_date}\' AND date < \'{end_date}\' '
                 f'order by date DESC')
         else:
-            query = text(f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id = \'{shop_id}\' order by date DESC')
-        engine = create_engine(f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
+            query = text(
+                f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id = \'{shop_id}\' order by date DESC')
+        engine = create_engine(
+            f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
         df = pd.read_sql(query, engine.connect())
         if df.empty:
             return False
         df['date'] = df['date'].dt.tz_localize(None)
-        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
-        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency', 'payment_name', 'product_name', 'price',
-                        'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name', 'client_phone', 'client_mail']
+        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType',
+                              'country_code', 'city_code'])
+        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name',
+                        'shop_currency', 'payment_name', 'product_name', 'price',
+                        'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name',
+                        'client_phone', 'client_mail']
         df = df[column_order]
+        df[['sum_usd', 'sum_rub', 'sum_try', 'price']] = df[
+            ['sum_usd', 'sum_rub', 'sum_try', 'price']].astype(float)
+        df[['quantity']] = df[
+            ['quantity']].astype(int)
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
         df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
         for column in df:
@@ -176,16 +194,26 @@ async def create_excel_by_shops(shop_id: list, file_name: str, start_date=None, 
             f'AND date >= \'{start_date}\' AND date < \'{end_date}\' '
             f'order by date DESC')
     else:
-        query = text(f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id IN {tuple(shop_id)} order by date DESC')
-    engine = create_engine(f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
+        query = text(
+            f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id IN {tuple(shop_id)} order by date DESC')
+    engine = create_engine(
+        f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
     df = pd.read_sql(query, engine.connect())
     if df.empty:
         return False
     df['date'] = df['date'].dt.tz_localize(None)
-    df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code', 'city_code'])
-    column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name', 'shop_currency', 'payment_name', 'product_name', 'price',
-                    'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name', 'client_phone', 'client_mail']
+    df = df.drop(
+        columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code',
+                 'city_code'])
+    column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name',
+                    'shop_currency', 'payment_name', 'product_name', 'price',
+                    'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name',
+                    'client_phone', 'client_mail']
     df = df[column_order]
+    df[['sum_usd', 'sum_rub', 'sum_try', 'price']] = df[
+        ['sum_usd', 'sum_rub', 'sum_try', 'price']].astype(float)
+    df[['quantity']] = df[
+        ['quantity']].astype(int)
     writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
     df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
     for column in df:

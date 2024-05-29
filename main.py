@@ -48,6 +48,7 @@ async def start():
 
     # Errors handlers
     dp.errors.register(errors_hand.error_total, ExceptionTypeFilter(Exception))
+    dp.errors.register(errors_hand.tg_duble_error, ExceptionTypeFilter(aiogram.exceptions.TelegramBadRequest))
 
     # MiddleWares
     dp.message.middleware(CheckRegistrationMessageMiddleware())

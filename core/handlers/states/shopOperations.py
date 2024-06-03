@@ -10,6 +10,7 @@ from loguru import logger
 import config
 from core.database.queryDB import get_client_info
 from core.database.ramarket_shop.db_shop import create_excel_by_shop, create_excel_by_agent_id, create_excel_by_shops, get_orders_by_order_id_and_shop_id, update_date_order
+from core.database.ramarket_shop.model import OrderStatus
 from core.keyboards.inline import getKeyboad_select_countries, getKeyboad_select_cities, getKeyboad_select_shop, getKeyboard_filters_history_orders, getKeyboad_orgs, \
     getKeyboard_shops_operations, getKeyboard_contracts, kb_select_order
 from core.oneC.oneC import *
@@ -300,6 +301,7 @@ async def accept_order_id(message: Message, state: FSMContext):
     data = await state.get_data()
     orders = await get_orders_by_order_id_and_shop_id(order_id=message.text.strip(),
                                                       shop_id=data['shop_id'])
+    orders = [_ for _ in orders if _.status not in [OrderStatus.prepare_delete, OrderStatus.delete]]
     log.info(f'Найдено {len(orders)} заказов. '
              f'Номер заказа "{message.text}" по магазину "{data["shop_id"]}"')
     if len(orders) == 0:
@@ -307,6 +309,8 @@ async def accept_order_id(message: Message, state: FSMContext):
         log.error('Заказ не найден')
         return
     elif len(orders) == 1:
+        if orders[0].status in [OrderStatus.prepare_delete, OrderStatus.delete]:
+            raise ValueError("Заказ уже удалён")
         await message.answer("Введите новую дату чека по <b><u>московскому времени</u></b>(+03)\n"
                              "Формат: дд.мм.гггг чч:мм:сс\n"
                              "Например: 01.01.2022 00:00:00")
@@ -314,7 +318,18 @@ async def accept_order_id(message: Message, state: FSMContext):
         await state.update_data(order_id=message.text, order_date=datetime.datetime.strftime(date, '%Y%m%d%H%M%S'))
         await state.set_state(ChangeOrderDate.newDate)
     elif len(orders) > 1:
-        await message.answer("Выберите заказ:", reply_markup=kb_select_order(orders))
+        orders = [_ for _ in orders if _.status not in [OrderStatus.prepare_delete, OrderStatus.delete]]
+        if orders == 0:
+            raise ValueError("Заказ уже удалён")
+        elif orders == 1:
+            await message.answer("Введите новую дату чека по <b><u>московскому времени</u></b>(+03)\n"
+                                 "Формат: дд.мм.гггг чч:мм:сс\n"
+                                 "Например: 01.01.2022 00:00:00")
+            date = orders[0].date + datetime.timedelta(hours=3)
+            await state.update_data(order_id=message.text, order_date=datetime.datetime.strftime(date, '%Y%m%d%H%M%S'))
+            await state.set_state(ChangeOrderDate.newDate)
+        else:
+            await message.answer("Выберите заказ:", reply_markup=kb_select_order(orders))
 
 
 async def msg_accept_new_date(message: Message, state: FSMContext):

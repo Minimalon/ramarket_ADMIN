@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from core.database.ramarket_shop.model import HistoryOrders
+from core.database.ramarket_shop.model import HistoryOrders, OrderStatus
 from core.oneC.api import Api
 from core.utils.callbackdata import *
 

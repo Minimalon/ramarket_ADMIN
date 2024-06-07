@@ -25,7 +25,8 @@ async def get_orders_by_shop_id(shop_id: str) -> list[HistoryOrders]:
 
 async def get_orders_by_order_id(order_id: str) -> list[HistoryOrders] | None:
     async with async_session() as session:
-        query = select(HistoryOrders).filter(HistoryOrders.order_id == order_id)
+        query = select(HistoryOrders).filter(HistoryOrders.order_id == order_id,
+                                             HistoryOrders.status.not_in([OrderStatus.prepare_delete, OrderStatus.delete]))
         result = await session.execute(query)
         return result.scalars().all()
 

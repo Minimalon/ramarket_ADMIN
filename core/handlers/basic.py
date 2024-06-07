@@ -18,6 +18,7 @@ from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts, getKe
     getKeyboard_filters_total_shop_history_orders
 from core.oneC.api import Api
 from core.utils import texts
+from core.utils.callbackdata import DeleteOrder
 from core.utils.states import DeleteOrderState
 
 oneC = Api()
@@ -119,19 +120,32 @@ async def accept_orderID_delete_order(message: Message, state: FSMContext):
             )
             log.success(f"Заказ удалён '{message.text}'")
         else:
-            await message.answer(text)
+            await message.answer(texts.error_head + text)
             log.error(text)
 
 
-async def accept_date_delete_order(call: CallbackQuery, state: FSMContext, callback_data: DeleteOrderState):
+async def accept_date_delete_order(call: CallbackQuery, state: FSMContext, callback_data: DeleteOrder):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
-    log.info(f'Выбрали чек для удаления "{callback_data.date}" "{callback_data.orderID}"')
+    log.info(f'Выбрали чек для удаления "{callback_data.date}" "{callback_data.order_id}"')
     date_order = datetime.strptime(callback_data.date, '%Y%m%d%H%M')
-    await oneC.delete_order(callback_data.orderID, date_order.strftime('%d.%m.%Y %H:%M:%S'))
-    await prepare_delete_history_order(callback_data.orderID, date_order)
-    await call.message.answer(
-        f'<b><u>Заказ удалён❌</u></b>\n<b>Номер заказа</b>: <code>{callback_data.orderID}</code>')
-    log.success(f'Удалили заказ {callback_data.orderID}')
+    if not config.develope_mode:
+        r, text = await oneC.delete_order(callback_data.order_id, date_order.strftime('%d.%m.%Y %H:%M:%S'))
+        if r.ok:
+            await prepare_delete_history_order(callback_data.order_id, date_order)
+            await call.message.edit_text(
+                f'<b><u>Заказ удалён❌</u></b>\n<b>Номер заказа</b>: <code>{callback_data.order_id}</code>')
+            log.success(f'Удалили заказ {callback_data.order_id}')
+        else:
+            await call.message.answer(texts.error_head + text)
+            log.error(text)
+    else:
+        await prepare_delete_history_order(callback_data.order_id, date_order)
+        await call.message.edit_text(
+            f'<b><u>Заказ удалён❌</u></b>\n'
+            f'<b>Номер заказа</b>: <code>{callback_data.order_id}</code>\n'
+            f'<b>Дата</b>: <code>{callback_data.date}</code>\n'
+        )
+        log.success(f'Удалили заказ {callback_data.order_id}')
 
 
 async def start_delete_contacts(message: Message, state: FSMContext):

@@ -134,7 +134,7 @@ async def accept_date_delete_order(call: CallbackQuery, state: FSMContext, callb
             await prepare_delete_history_order(callback_data.order_id, date_order)
             await call.message.edit_text(
                 f'<b><u>Заказ удалён❌</u></b>\n<b>Номер заказа</b>: <code>{callback_data.order_id}</code>')
-            log.success(f'Удалили заказ {callback_data.order_id}')
+            log.success(f'Удалили заказ {callback_data.order_id} на {date_order}')
         else:
             await call.message.answer(texts.error_head + text)
             log.error(text)

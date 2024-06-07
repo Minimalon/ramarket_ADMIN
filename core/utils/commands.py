@@ -70,6 +70,6 @@ async def get_commands_admins(bot: Bot, admins):
     ]
     for admin in admins:
         try:
-            return await bot.set_my_commands(commands, BotCommandScopeChat(chat_id=admin.chat_id))
+            await bot.set_my_commands(commands, BotCommandScopeChat(chat_id=admin.chat_id))
         except aiogram.exceptions.TelegramBadRequest:
             continue

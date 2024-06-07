@@ -55,6 +55,12 @@ class HistoryOrdersAll(StatesGroup):
 class CreateKontragent(StatesGroup):
     name = State()
 
+
 class ChangeOrderDate(StatesGroup):
     orderID = State()
     newDate = State()
+
+
+class DeleteOrderState(StatesGroup):
+    orderID = State()
+    date = State()

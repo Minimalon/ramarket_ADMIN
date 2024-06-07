@@ -92,3 +92,9 @@ class SelectOrder(CallbackData, prefix='select_order'):
     order_id: str
     date: str  # %Y%m%d%H%M%S
     shop_id: str
+
+
+class DeleteOrder(CallbackData, prefix='delete_order'):
+    order_id: str
+    date: str  # %Y%m%d%H%M
+    shop_id: str

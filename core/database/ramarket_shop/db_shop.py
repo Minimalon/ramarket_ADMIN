@@ -23,6 +23,43 @@ async def get_orders_by_shop_id(shop_id: str) -> list[HistoryOrders]:
         return result.scalars().all()
 
 
+async def get_orders_by_order_id(order_id: str) -> list[HistoryOrders] | None:
+    async with async_session() as session:
+        query = select(HistoryOrders).filter(HistoryOrders.order_id == order_id)
+        result = await session.execute(query)
+        return result.scalars().all()
+
+
+async def delete_orders_by_order_id(order_id: str) -> None:
+    async with async_session() as session:
+        query = update(HistoryOrders).where(HistoryOrders.order_id == order_id).values(
+            status=OrderStatus.prepare_delete
+        )
+        await session.execute(query)
+        await session.commit()
+
+
+async def prepare_delete_history_order(order_id: str, order_date: datetime):
+    async with async_session() as session:
+        await session.execute(
+            update(HistoryOrders).
+            where(
+                (HistoryOrders.order_id == order_id) &
+                (func.to_char(HistoryOrders.date, 'YYYYMMDDHH24MI') == order_date.strftime('%Y%m%d%H%M'))
+            ).
+            values(
+                status=OrderStatus.prepare_delete,
+            ))
+        await session.commit()
+
+
+async def get_orders_by_order_id_and_date(order_id: str, date: datetime) -> list[HistoryOrders] | None:
+    async with async_session() as session:
+        query = select(HistoryOrders).filter(HistoryOrders.order_id == order_id)
+        result = await session.execute(query)
+        return result.scalars().all()
+
+
 async def get_orders_by_order_id_and_shop_id(order_id: str, shop_id: str) -> list[HistoryOrders] | None:
     async with async_session() as session:
         query = select(HistoryOrders).filter(HistoryOrders.order_id == order_id,

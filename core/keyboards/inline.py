@@ -285,3 +285,18 @@ def kb_select_order(orders: list[HistoryOrders]):
                         ))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
+
+
+def kb_select_delete_order(orders: list[HistoryOrders]):
+    keyboard = InlineKeyboardBuilder()
+    for order in orders:
+        date = order.date + timedelta(hours=3)
+        keyboard.button(text=f'{date.strftime("%d.%m.%Y %H:%M:%S")} | {order.order_id}',
+                        callback_data=DeleteOrder(
+                            order_id=order.order_id,
+                            date=date.strftime('%Y%m%d%H%M'),
+                            shop_id=str(order.shop_id),
+                        ))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+

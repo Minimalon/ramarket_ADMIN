@@ -28,7 +28,8 @@ class Api:
         :param currency_price: Стоимость валюты
         :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера
         """
-        data = {"Sklad": name, "Org": inn, "Контр": kontragent_id, "Valut": currency, "KursPrice": currency_price, "KodGorod": cityCode, "KodStrana": countryCode,
+        data = {"Sklad": name, "Org": inn, "Контр": kontragent_id, "Valut": currency, "KursPrice": currency_price,
+                "KodGorod": cityCode, "KodStrana": countryCode,
                 "Dogovor": contract}
         async with aiohttp.ClientSession() as session:
             async with session.post(f"{self.adress}/CreateTT", data=json.dumps(data)) as response:
@@ -185,6 +186,18 @@ class Api:
         data = {"Номер": order_id, "Дата": date_doc, "НоваяДата": new_date}
         async with aiohttp.ClientSession() as session:
             async with session.post(f"{self.adress}/ChangeDateDoc", data=json.dumps(data)) as response:
+                return response, await response.text()
+
+    async def delete_order(self, order_id: str, date: str):
+        """
+        Удаляет созданный заказ
+        :param order_id: Номер заказа
+        :param date: Дата заказа в формате %d.%m.%Y %H:%M:%S
+        :return:
+        """
+        data = json.dumps({"Номер": order_id, "Дата": date})
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{self.adress}/DeleteDoc", data=data) as response:
                 return response, await response.text()
 
 

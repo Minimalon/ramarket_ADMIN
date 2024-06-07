@@ -40,6 +40,10 @@ async def get_commands_admins(bot: Bot, admins):
             description='Все пользователи 1C'
         ),
         BotCommand(
+            command='delete_order',
+            description='Удалить чек'
+        ),
+        BotCommand(
             command='delete_users',
             description='Удалить пользователей 1C'
         ),

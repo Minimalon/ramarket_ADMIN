@@ -14,18 +14,23 @@ import config
 from core.database.model import init_models
 from core.database.queryDB import get_admins
 from core.handlers import contact, errors_hand
-from core.handlers.basic import get_start, video_tutorial, contacts, start_delete_contacts, all_users, start_delete_users, filter_total_orders, \
-    create_kontragent, test
-from core.handlers.callback import select_to_delete_contacts, select_currency, history_one_user_all_days, delete_contacts, functions_shop, select_to_delete_users, delete_users, \
+from core.handlers.basic import get_start, video_tutorial, contacts, start_delete_contacts, all_users, \
+    start_delete_users, filter_total_orders, \
+    create_kontragent, test, start_delete_order, accept_orderID_delete_order, accept_date_delete_order
+from core.handlers.callback import select_to_delete_contacts, select_currency, history_one_user_all_days, \
+    delete_contacts, functions_shop, select_to_delete_users, delete_users, \
     select_filter_user_history_orders, start_create_kontragent
 from core.handlers.states import shops, createShop, addContact, createEmployee, shopOperations
 from core.handlers.states.updateCurrencyPriceAll import get_price, update_price
 from core.middlewares.checkReg import CheckRegistrationCallbackMiddleware, CheckRegistrationMessageMiddleware
-from core.utils.callbackdata import SavedContact, DeleteContact, CreateEmployee, EmployeeAdmin, Country, City, Shops, Currencyes, Kontragent, RemoveShop, AddShop, CurrencyOneShop, \
-    Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract, SelectOrder
+from core.utils.callbackdata import SavedContact, DeleteContact, CreateEmployee, EmployeeAdmin, Country, City, Shops, \
+    Currencyes, Kontragent, RemoveShop, AddShop, CurrencyOneShop, \
+    Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract, SelectOrder, \
+    DeleteOrder
 from core.utils.commands import get_commands, get_commands_admins
-from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop, CreateShop, UpdateCurrencyPriceAll, Contact, OneShopCurrency, HistoryOrdersUser, HistoryOrdersAll, \
-    CreateKontragent, ChangeOrderDate
+from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop, CreateShop, UpdateCurrencyPriceAll, \
+    Contact, OneShopCurrency, HistoryOrdersUser, HistoryOrdersAll, \
+    CreateKontragent, ChangeOrderDate, DeleteOrderState
 
 
 @logger.catch()
@@ -63,8 +68,12 @@ async def start():
     # Админ команды
     dp.message.register(all_users, Command(commands=['all_users']))
     dp.message.register(start_delete_users, Command(commands=['delete_users']))
+    dp.message.register(start_delete_order, Command(commands=['delete_order']))
     dp.message.register(filter_total_orders, Command(commands=['total_orders']))
 
+    # Удаление заказа
+    dp.message.register(accept_orderID_delete_order, DeleteOrderState.orderID)
+    dp.callback_query.register(accept_date_delete_order, DeleteOrderState.orderID, DeleteOrder.filter())
     # Сохранённые пользователи
     dp.callback_query.register(contact.get_saved_contact, SavedContact.filter())
     dp.message.register(addContact.add_phone, AddPhone.phone)
@@ -89,7 +98,8 @@ async def start():
 
     # История продаж всех магазинов
     dp.callback_query.register(shopOperations.history_total_shops, HistoryTotalShops.filter())
-    dp.callback_query.register(shopOperations.send_history_total_shops_all_days, F.data == 'history_total_shops_all_days')
+    dp.callback_query.register(shopOperations.send_history_total_shops_all_days,
+                               F.data == 'history_total_shops_all_days')
     dp.callback_query.register(shopOperations.history_period, F.data == 'history_period_total_shops')
     dp.message.register(shopOperations.start_period, HistoryOrdersAll.start_date)
     dp.message.register(shopOperations.end_period, HistoryOrdersAll.end_date)
@@ -106,7 +116,8 @@ async def start():
     dp.message.register(shopOperations.end_period, HistoryOrdersShop.end_date)
     dp.callback_query.register(shopOperations.history_shop_orders_by_days, HistoryShopOrdersByDays.filter())
     # -- Прикрепить договор
-    dp.callback_query.register(shopOperations.select_change_contract, F.data == 'change_contract', HistoryOrdersShop.shops)
+    dp.callback_query.register(shopOperations.select_change_contract, F.data == 'change_contract',
+                               HistoryOrdersShop.shops)
     # -- Изменить дату чека
     dp.callback_query.register(shopOperations.get_order_id, F.data == 'change_date_order')
     dp.message.register(shopOperations.accept_order_id, ChangeOrderDate.orderID)
@@ -155,8 +166,6 @@ async def start():
     # Создать КонтрАгента
     dp.callback_query.register(start_create_kontragent, F.data == 'startCreateKontrAgent')
     dp.message.register(create_kontragent, CreateKontragent.name)
-
-
 
     try:
         await dp.start_polling(bot)

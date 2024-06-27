@@ -87,11 +87,6 @@ async def start_delete_users(message: Message, state: FSMContext):
 
 async def start_delete_order(message: Message, state: FSMContext):
     log = logger.bind(name=message.chat.first_name, chat_id=message.chat.id)
-    admin = await get_admins(message.chat.id)
-    if not admin:
-        await message.answer(texts.error_head + "Вы не суперадмин")
-        log.error("Не суперадмин")
-        return
     await state.set_state(DeleteOrderState.orderID)
     log.info('Нажали кнопку "Удалить чек"')
     await message.answer("Напишите номер заказа")

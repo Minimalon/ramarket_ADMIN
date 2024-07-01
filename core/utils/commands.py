@@ -27,7 +27,7 @@ async def get_commands(bot: Bot):
         ),
         BotCommand(
             command='delete_order',
-            description='Удалить чек'
+            description='Удалить заказ'
         ),
     ]
     await bot.set_my_commands(commands, BotCommandScopeDefault())
@@ -62,6 +62,10 @@ async def get_commands_admins(bot: Bot, admins):
         BotCommand(
             command='delete_contacts',
             description='Удалить сохранённые контакты'
+        ),
+        BotCommand(
+            command='delete_order',
+            description='Удалить заказ'
         ),
         BotCommand(
             command='help',

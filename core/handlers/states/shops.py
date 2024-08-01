@@ -196,6 +196,7 @@ async def chage_currency_price_one_shop(message: Message, state: FSMContext, bot
     price = str(Decimal(price).quantize(Decimal('1.0000')))
     response, text = await Api().change_currency_one_shop(shop_id, price)
     if response.ok:
+        log.success(f'Стоимость валюты "{shop_name}" успешно изменена')
         await message.answer(f'✅Стоимость валюты "<b><u>{shop_name}</u></b>" успешно изменена')
         await bot.send_message(message.chat.id, texts.menu, reply_markup=getKeyboard_start())
         await state.clear()

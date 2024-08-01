@@ -40,6 +40,7 @@ async def update_price(message: Message, state: FSMContext, bot: Bot):
     price = str(Decimal(price).quantize(Decimal('1.0000')))
     response, text = await Api().update_currency_all(data.get('currency'), price)
     if response.ok:
+        log.success(f'Стоимость валюты "{data.get("currency")}" успешно изменена')
         await message.answer(f'✅Стоимость валюты "<b><u>{data.get("currency")}</u></b>" успешно изменена')
         await bot.send_message(message.chat.id, texts.menu, reply_markup=getKeyboard_start())
         await state.clear()

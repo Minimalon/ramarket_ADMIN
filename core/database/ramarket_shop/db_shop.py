@@ -144,11 +144,11 @@ async def create_excel_by_agent_id(agent_id: str, file_name: str, start_date=Non
                               'country_code', 'city_code'])
         column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name',
                         'shop_currency', 'payment_name', 'product_name', 'price',
-                        'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name',
+                        'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'sum_kzt', 'currency', 'currencyPrice', 'client_name',
                         'client_phone', 'client_mail']
         df = df[column_order]
-        df[['sum_usd', 'sum_rub', 'sum_try', 'price']] = df[
-            ['sum_usd', 'sum_rub', 'sum_try', 'price']].astype(float)
+        df[['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']] = df[
+            ['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']].astype(float)
         df[['quantity']] = df[
             ['quantity']].astype(int)
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
@@ -197,11 +197,11 @@ async def create_excel_by_shop(shop_id: str, file_name: str, start_date=None, en
                               'country_code', 'city_code'])
         column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name',
                         'shop_currency', 'payment_name', 'product_name', 'price',
-                        'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name',
+                        'quantity', 'sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'currency', 'currencyPrice', 'client_name',
                         'client_phone', 'client_mail']
         df = df[column_order]
-        df[['sum_usd', 'sum_rub', 'sum_try', 'price']] = df[
-            ['sum_usd', 'sum_rub', 'sum_try', 'price']].astype(float)
+        df[['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']] = df[
+            ['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']].astype(float)
         df[['quantity']] = df[
             ['quantity']].astype(int)
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
@@ -245,11 +245,11 @@ async def create_excel_by_shops(shop_id: list, file_name: str, start_date=None, 
                  'city_code'])
     column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name',
                     'shop_currency', 'payment_name', 'product_name', 'price',
-                    'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'currency', 'currencyPrice', 'client_name',
+                    'quantity', 'sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'currency', 'currencyPrice', 'client_name',
                     'client_phone', 'client_mail']
     df = df[column_order]
-    df[['sum_usd', 'sum_rub', 'sum_try', 'price']] = df[
-        ['sum_usd', 'sum_rub', 'sum_try', 'price']].astype(float)
+    df[['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']] = df[
+        ['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']].astype(float)
     df[['quantity']] = df[
         ['quantity']].astype(int)
     writer = pd.ExcelWriter(path_file, engine="xlsxwriter")

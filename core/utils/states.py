@@ -64,3 +64,10 @@ class ChangeOrderDate(StatesGroup):
 class DeleteOrderState(StatesGroup):
     orderID = State()
     date = State()
+
+
+class SendCashState(StatesGroup):
+    currency = State()
+    shop = State()
+    user = State()
+    amount = State()

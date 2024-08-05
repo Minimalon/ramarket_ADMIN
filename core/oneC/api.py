@@ -200,6 +200,5 @@ class Api:
             async with session.post(f"{self.adress}/DeleteDoc", data=data) as response:
                 return response, await response.text()
 
-
 if __name__ == '__main__':
     print(asyncio.run(Api().user_add_shop('7402575', ['5502630'])))

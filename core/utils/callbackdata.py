@@ -98,3 +98,15 @@ class DeleteOrder(CallbackData, prefix='delete_order'):
     order_id: str
     date: str  # %Y%m%d%H%M
     shop_id: str
+
+
+class SendCashCurrency(CallbackData, prefix='send_cash_currency'):
+    currency: str
+
+
+class SendCashUser(CallbackData, prefix='send_cash_user'):
+    id: str
+
+
+class SendCashShop(CallbackData, prefix='send_cash_shop'):
+    shop_id: str

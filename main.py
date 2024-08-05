@@ -32,6 +32,8 @@ from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop,
     Contact, OneShopCurrency, HistoryOrdersUser, HistoryOrdersAll, \
     CreateKontragent, ChangeOrderDate, DeleteOrderState
 
+from core.handlers.send_cash.send_cash import router as send_cash_router
+
 
 @logger.catch()
 async def start():
@@ -167,6 +169,8 @@ async def start():
     dp.callback_query.register(start_create_kontragent, F.data == 'startCreateKontrAgent')
     dp.message.register(create_kontragent, CreateKontragent.name)
 
+    # Routers
+    dp.include_router(send_cash_router)
     try:
         await dp.start_polling(bot)
     except aiogram.exceptions.TelegramNetworkError:

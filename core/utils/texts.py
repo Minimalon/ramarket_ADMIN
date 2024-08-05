@@ -5,9 +5,14 @@ import loguru
 from funcy import str_join
 
 from core.database.ramarket_shop.db_shop import get_orders_by_1c_id
+from core.handlers.send_cash.pd_model import SendCash
+from core.oneC.oneC import get_shop_by_id
 
-error_head = f"➖➖🚨ОШИБКА🚨➖➖\n"
-success_head = f"➖➖✅Успешно✅➖➖\n"
+error_head = f"➖➖➖➖🚨ОШИБКА🚨➖➖➖➖\n"
+intersum_head = f"➖➖➖➖❗️ВАЖНО❗️➖➖➖➖\n"
+information_head = f"➖➖➖ℹ️Информацияℹ️➖➖➖\n"
+auth_head = f"➖➖➖🔑Авторизация🔑➖➖➖\n"
+success_head = '➖➖➖✅Успешно✅➖➖➖\n'
 
 
 async def error_server(status):
@@ -15,7 +20,8 @@ async def error_server(status):
 
 
 def error_full_name(name):
-    return "{error_head}ФИО состоит из 3 слов, а ваше состоит из {count} слов\n<b>Попробуйте снова.</b>".format(error_head=error_head, count=len(name.split()))
+    return "{error_head}ФИО состоит из 3 слов, а ваше состоит из {count} слов\n<b>Попробуйте снова.</b>".format(
+        error_head=error_head, count=len(name.split()))
 
 
 menu = f'Главное меню'
@@ -62,3 +68,14 @@ def phone(phone):
     if re.findall(r'^89', phone):
         return re.sub(r'^89', '79', phone)
     return phone
+
+
+async def send_cash(sc: SendCash):
+    shop = await get_shop_by_id(sc.shop_id)
+    return (
+        f"{information_head}"
+        f"Валюта: <code>{sc.currency}</code>\n"
+        f"Сумма: <code>{sc.amount}</code>\n"
+        f"Получатель: <code>{sc.user.name}</code>\n"
+        f"Магазин: <code>{shop.name}</code>\n"
+    )

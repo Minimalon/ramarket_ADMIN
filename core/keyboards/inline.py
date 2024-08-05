@@ -3,7 +3,9 @@ from datetime import timedelta
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from core.database.ramarket_shop.model import HistoryOrders, OrderStatus
+from core.handlers.send_cash.pd_model import SendCash
 from core.oneC.api import Api
+from core.oneC.pd_model import User
 from core.utils.callbackdata import *
 
 oneC = Api()
@@ -15,6 +17,7 @@ def getKeyboard_start():
     keyboard.button(text='Создать магазин', callback_data='startCreateShop')
     keyboard.button(text='Создать контрагента', callback_data='startCreateKontrAgent')
     keyboard.button(text='Операции с магазином', callback_data='shops_operations')
+    keyboard.button(text='Выдача наличных', callback_data='send_cash')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -87,7 +90,8 @@ async def getKeyboard_start_delete_users(contacts):
     keyboard = InlineKeyboardBuilder()
     if contacts:
         for count, contact in enumerate(contacts, start=1):
-            keyboard.button(text=f"№{count} {contact['Наименование']} 📱{contact['Телефон'][-7:]}", callback_data=DeleteUsers(id=contact['id']))
+            keyboard.button(text=f"№{count} {contact['Наименование']} 📱{contact['Телефон'][-7:]}",
+                            callback_data=DeleteUsers(id=contact['id']))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -96,7 +100,8 @@ async def getKeyboard_all_contacts(contacts):
     keyboard = InlineKeyboardBuilder()
     if contacts:
         for count, contact in enumerate(contacts, start=1):
-            keyboard.button(text=f'№{count} {contact.name} 📱{contact.phone[-7:]} | {contact.count_total_orders}', callback_data=SavedContact(phone=contact.phone))
+            keyboard.button(text=f'№{count} {contact.name} 📱{contact.phone[-7:]} | {contact.count_total_orders}',
+                            callback_data=SavedContact(phone=contact.phone))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -108,9 +113,11 @@ async def getKeyboard_delete_users(contacts, to_delete=None):
     if contacts:
         for count, contact in enumerate(contacts, start=1):
             if contact['id'] in to_delete:
-                keyboard.button(text=f"№{count} {contact['Наименование']} 📱{contact['Телефон'][-7:]}✅", callback_data=DeleteUsers(id=contact["id"]))
+                keyboard.button(text=f"№{count} {contact['Наименование']} 📱{contact['Телефон'][-7:]}✅",
+                                callback_data=DeleteUsers(id=contact["id"]))
             else:
-                keyboard.button(text=f"№{count} {contact['Наименование']} 📱{contact['Телефон'][-7:]}", callback_data=DeleteUsers(id=contact["id"]))
+                keyboard.button(text=f"№{count} {contact['Наименование']} 📱{contact['Телефон'][-7:]}",
+                                callback_data=DeleteUsers(id=contact["id"]))
     if len(to_delete) > 0:
         keyboard.button(text="Удалить 🗑", callback_data='deleteUsers')
     keyboard.adjust(1, repeat=True)
@@ -238,9 +245,11 @@ def getKeyboard_shop_remove(shops, user_id, removeShop=None):
     keyboard = InlineKeyboardBuilder()
     for shop in shops:
         if shop.code in removeShop:
-            keyboard.button(text=f"{shop.name} {shop.contract} ✅", callback_data=RemoveShop(user_id=user_id, shop_id=shop.code))
+            keyboard.button(text=f"{shop.name} {shop.contract} ✅",
+                            callback_data=RemoveShop(user_id=user_id, shop_id=shop.code))
         elif shop.code not in removeShop:
-            keyboard.button(text=f"{shop.name} {shop.contract}", callback_data=RemoveShop(user_id=user_id, shop_id=shop.code))
+            keyboard.button(text=f"{shop.name} {shop.contract}",
+                            callback_data=RemoveShop(user_id=user_id, shop_id=shop.code))
     keyboard.button(text="⬅️", callback_data='storeFunctions')
     if len(removeShop) > 0:
         keyboard.button(text="Удалить", callback_data='removeShops')
@@ -254,9 +263,11 @@ def getKeyboard_shop_add(shops, user_id, addShop=None):
     keyboard = InlineKeyboardBuilder()
     for shop in shops:
         if shop.code in addShop:
-            keyboard.button(text=f"{shop.name} {shop.contract} ✅", callback_data=AddShop(user_id=user_id, shop_id=shop.code))
+            keyboard.button(text=f"{shop.name} {shop.contract} ✅",
+                            callback_data=AddShop(user_id=user_id, shop_id=shop.code))
         elif shop.code not in addShop:
-            keyboard.button(text=f"{shop.name} {shop.contract}", callback_data=AddShop(user_id=user_id, shop_id=shop.code))
+            keyboard.button(text=f"{shop.name} {shop.contract}",
+                            callback_data=AddShop(user_id=user_id, shop_id=shop.code))
     keyboard.button(text="⬅️", callback_data='storeFunctions')
     if len(addShop) > 0:
         keyboard.button(text="Прикрепить", callback_data='addShops')
@@ -300,3 +311,33 @@ def kb_select_delete_order(orders: list[HistoryOrders]):
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
+
+def kb_send_cash_select_currency():
+    keyboard = InlineKeyboardBuilder()
+    for currency in ['USD', 'TRY', 'EUR', 'RUB']:
+        keyboard.button(text=currency, callback_data=SendCashCurrency(currency=currency))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
+def kb_send_cash_select_user(users: list[User]):
+    keyboard = InlineKeyboardBuilder()
+    for user in users:
+        keyboard.button(text=user.name, callback_data=SendCashUser(id=user.id))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
+def kb_send_cash_select_shop(shops):
+    keyboard = InlineKeyboardBuilder()
+    for shop in shops:
+        keyboard.button(text=shop.name, callback_data=SendCashShop(shop_id=shop.code))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+
+def kb_send_cash_confirm():
+    keyboard = InlineKeyboardBuilder()
+    keyboard.button(text='Отправить ✅', callback_data='send_cash_confirm')
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()

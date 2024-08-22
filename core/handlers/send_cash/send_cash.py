@@ -10,7 +10,8 @@ import config
 from core.database.queryDB import get_client_info
 from core.handlers.send_cash.pd_model import SendCash
 from core.keyboards import inline
-from core.oneC.oneC import get_user_shops, get_user_by_id, get_users_by_shop
+from core.oneC.api import Api
+from core.oneC.oneC import get_user_shops, get_user_by_id, get_users_by_shop, get_shop_by_id
 from core.utils import texts
 from core.utils.callbackdata import SendCashCurrency, SendCashShop, SendCashUser
 from core.utils.states import SendCashState
@@ -88,7 +89,11 @@ async def send_cash_confirm(call: CallbackQuery, state: FSMContext):
     log.info('Нажали "Отправить"')
     data = await state.get_data()
     sc = SendCash.model_validate_json(data.get('send_cash'))
-    if config.develope_mode:
-        await call.message.answer(json.dumps(sc.send_to_1c()))
+    api = Api()
+    response, text = await api.send_money(sc.shop_id, sc.amount, sc.currency, sc.user.id)
+    shop = await get_shop_by_id(sc.shop_id)
+    if response.ok:
+        await call.message.edit_text(texts.success_head + f'Магазин "{shop.name}" получил {sc.amount} {sc.currency}')
     else:
-        await call.answer('Данная кнопка в разработке')
+        await call.message.edit_text(texts.error_head + text)
+    await state.clear()

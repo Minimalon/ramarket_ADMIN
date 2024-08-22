@@ -200,5 +200,25 @@ class Api:
             async with session.post(f"{self.adress}/DeleteDoc", data=data) as response:
                 return response, await response.text()
 
+    async def send_money(self, shop: str, amount: float, currency: str, user: str):
+        """
+        Отправляем деньги магазину
+        :param shop: ID магазина
+        :param amount: Количество денег
+        :param currency: Валюта
+        :param user: ID юзера
+        :return:
+        """
+        data = json.dumps({
+            "Shop": shop,
+            "Amount": amount,
+            "Currency": currency,
+            "User": user
+        })
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{self.adress}/CreateRKO", data=data) as response:
+                return response, await response.text()
+
+
 if __name__ == '__main__':
     print(asyncio.run(Api().user_add_shop('7402575', ['5502630'])))

@@ -1,6 +1,7 @@
 import asyncio
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import pandas as pd
 from sqlalchemy import select, create_engine, text, distinct, func, DateTime, cast, update
@@ -16,6 +17,57 @@ Base = declarative_base()
 async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
+async def correct_df(df):
+    df['date'] = df['date'].dt.tz_localize(None)
+    df = df.drop(columns=[
+        'chat_id',
+        'id',
+        'agent_id',
+        'shop_id',
+        'paymentGateway',
+        'product_id',
+        'paymentType',
+        'country_code',
+        'city_code',
+    ])
+    column_order = [
+        'date',
+        'order_id',
+        'status',
+        'agent_name',
+        'country_name',
+        'city_name',
+        'shop_name',
+        'shop_currency',
+        'payment_name',
+        'product_name',
+        'price',
+        'quantity',
+        'sum_usd',
+        'sum_rub',
+        'sum_try',
+        'sum_kzt',
+        'tax',
+        'currency',
+        'currencyPrice',
+        'client_name',
+        'client_phone',
+        'client_mail',
+    ]
+    df = df[column_order]
+    df[['sum_usd', 'sum_rub', 'sum_try', 'sum_kzt', 'price']] = df[
+        ['sum_usd', 'sum_rub', 'sum_try', 'sum_kzt', 'price']].astype(float)
+    df[['quantity']] = df[['quantity']].astype(int)
+    sum_kzt = df['sum_kzt'].fillna(0)
+    # sum_usd = df['sum_usd'].fillna(0)
+    # sum_rub = df['sum_rub'].fillna(0)
+    tax = df['tax'].fillna(0)
+    df['sum_kzt'] = round(sum_kzt * (1 if tax.empty else (tax / 100) + 1), 0)
+    # df['sum_usd'] = round(sum_usd * (1 if tax.empty else (tax / 100) + 1), 0)
+    # df['sum_rub'] = round(sum_rub * (1 if tax.empty else (tax / 100) + 1), 0)
+    return df
+
+
 async def get_orders_by_shop_id(shop_id: str) -> list[HistoryOrders]:
     async with async_session() as session:
         query = select(HistoryOrders).filter(HistoryOrders.shop_id == shop_id)
@@ -26,7 +78,8 @@ async def get_orders_by_shop_id(shop_id: str) -> list[HistoryOrders]:
 async def get_orders_by_order_id(order_id: str) -> list[HistoryOrders] | None:
     async with async_session() as session:
         query = select(HistoryOrders).filter(HistoryOrders.order_id == order_id,
-                                             HistoryOrders.status.not_in([OrderStatus.prepare_delete, OrderStatus.delete]))
+                                             HistoryOrders.status.not_in(
+                                                 [OrderStatus.prepare_delete, OrderStatus.delete]))
         result = await session.execute(query)
         return result.scalars().all()
 
@@ -121,9 +174,10 @@ async def create_excel_by_agent_id(agent_id: str, file_name: str, start_date=Non
     async with async_session() as session:
         q = await session.execute(select(HistoryOrders).filter(HistoryOrders.agent_id == agent_id))
         orders = q.scalars().first()
-        if not os.path.exists(os.path.join(config.dir_path, 'files', 'historyOrders')):
-            os.makedirs(os.path.join(config.dir_path, 'files', 'historyOrders'))
-        path_file = os.path.join(config.dir_path, 'files', 'historyOrders', f"{file_name}.xlsx")
+        dir_path = Path(config.dir_path, 'files', 'historyOrders')
+        if not dir_path.exists():
+            dir_path.mkdir(parents=True, exist_ok=True)
+        path_file = dir_path / f"{file_name}.xlsx"
         if orders is None:
             return False
         if start_date and end_date:
@@ -139,18 +193,7 @@ async def create_excel_by_agent_id(agent_id: str, file_name: str, start_date=Non
         df = pd.read_sql(query, engine.connect())
         if df.empty:
             return False
-        df['date'] = df['date'].dt.tz_localize(None)
-        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType',
-                              'country_code', 'city_code'])
-        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name',
-                        'shop_currency', 'payment_name', 'product_name', 'price',
-                        'quantity', 'sum_usd', 'sum_rub', 'sum_try', 'sum_kzt', 'currency', 'currencyPrice', 'client_name',
-                        'client_phone', 'client_mail']
-        df = df[column_order]
-        df[['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']] = df[
-            ['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']].astype(float)
-        df[['quantity']] = df[
-            ['quantity']].astype(int)
+        df = await correct_df(df)
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
         df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
 
@@ -192,18 +235,7 @@ async def create_excel_by_shop(shop_id: str, file_name: str, start_date=None, en
         df = pd.read_sql(query, engine.connect())
         if df.empty:
             return False
-        df['date'] = df['date'].dt.tz_localize(None)
-        df = df.drop(columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType',
-                              'country_code', 'city_code'])
-        column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name',
-                        'shop_currency', 'payment_name', 'product_name', 'price',
-                        'quantity', 'sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'currency', 'currencyPrice', 'client_name',
-                        'client_phone', 'client_mail']
-        df = df[column_order]
-        df[['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']] = df[
-            ['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']].astype(float)
-        df[['quantity']] = df[
-            ['quantity']].astype(int)
+        df = await correct_df(df)
         writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
         df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
         for column in df:
@@ -239,19 +271,7 @@ async def create_excel_by_shops(shop_id: list, file_name: str, start_date=None, 
     df = pd.read_sql(query, engine.connect())
     if df.empty:
         return False
-    df['date'] = df['date'].dt.tz_localize(None)
-    df = df.drop(
-        columns=['chat_id', 'id', 'agent_id', 'shop_id', 'paymentGateway', 'product_id', 'paymentType', 'country_code',
-                 'city_code'])
-    column_order = ['date', 'order_id', 'status', 'agent_name', 'country_name', 'city_name', 'shop_name',
-                    'shop_currency', 'payment_name', 'product_name', 'price',
-                    'quantity', 'sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'currency', 'currencyPrice', 'client_name',
-                    'client_phone', 'client_mail']
-    df = df[column_order]
-    df[['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']] = df[
-        ['sum_usd', 'sum_rub', 'sum_try','sum_kzt', 'price']].astype(float)
-    df[['quantity']] = df[
-        ['quantity']].astype(int)
+    df = await correct_df(df)
     writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
     df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
     for column in df:

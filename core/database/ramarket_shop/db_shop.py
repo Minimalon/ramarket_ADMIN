@@ -56,8 +56,8 @@ async def correct_df(df):
         'client_mail',
     ]
     df = df[column_order]
-    df[['sum_usd', 'sum_rub', 'sum_try', 'sum_kzt', 'price']] = df[
-        ['sum_usd', 'sum_rub', 'sum_try', 'sum_kzt', 'price']].astype(float)
+    df[['sum_usd', 'sum_rub', 'sum_try', 'sum_kzt', 'price', 'currencyPrice']] = df[
+        ['sum_usd', 'sum_rub', 'sum_try', 'sum_kzt', 'price', 'currencyPrice']].astype(float)
     df[['quantity']] = df[['quantity']].astype(int)
     sum_kzt = df['sum_kzt'].fillna(0)
     # sum_usd = df['sum_usd'].fillna(0)

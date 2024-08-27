@@ -59,11 +59,12 @@ async def correct_df(df):
     df[['sum_usd', 'sum_rub', 'sum_try', 'sum_kzt', 'price', 'currencyPrice']] = df[
         ['sum_usd', 'sum_rub', 'sum_try', 'sum_kzt', 'price', 'currencyPrice']].astype(float)
     df[['quantity']] = df[['quantity']].astype(int)
-    sum_kzt = df['sum_kzt'].fillna(0)
+    sum_kzt = ((df['price'] * df['quantity']) * df['currencyPrice'])
     # sum_usd = df['sum_usd'].fillna(0)
     # sum_rub = df['sum_rub'].fillna(0)
     tax = df['tax'].fillna(0)
-    df['sum_kzt'] = ((df['price'] * df['quantity']) * df['currencyPrice']) * (1 if tax.empty else tax / 100 + 1)
+
+    df['sum_kzt'] = round(sum_kzt * (1 if tax.empty else tax / 100 + 1), 0)
     # df['sum_usd'] = round(sum_usd * (1 if tax.empty else (tax / 100) + 1), 0)
     # df['sum_rub'] = round(sum_rub * (1 if tax.empty else (tax / 100) + 1), 0)
     return df

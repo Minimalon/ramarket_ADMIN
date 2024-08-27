@@ -63,7 +63,7 @@ async def correct_df(df):
     # sum_usd = df['sum_usd'].fillna(0)
     # sum_rub = df['sum_rub'].fillna(0)
     tax = df['tax'].fillna(0)
-    df['sum_kzt'] = sum_kzt * (1 if tax.empty else tax / 100 + 1)
+    df['sum_kzt'] = ((df['price'] * df['quantity']) * df['currencyPrice']) * (1 if tax.empty else tax / 100 + 1)
     # df['sum_usd'] = round(sum_usd * (1 if tax.empty else (tax / 100) + 1), 0)
     # df['sum_rub'] = round(sum_rub * (1 if tax.empty else (tax / 100) + 1), 0)
     return df

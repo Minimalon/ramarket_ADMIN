@@ -127,6 +127,7 @@ async def accept_date_delete_order(call: CallbackQuery, state: FSMContext, callb
         r, text = await oneC.delete_order(callback_data.order_id, date_order.strftime('%d.%m.%Y %H:%M:%S'))
         if r.ok:
             await prepare_delete_history_order(callback_data.order_id, date_order)
+            await delete_document(callback_data.order_id, date_order)
             await call.message.edit_text(
                 f'<b><u>Заказ удалён❌</u></b>\n<b>Номер заказа</b>: <code>{callback_data.order_id}</code>')
             log.success(f'Удалили заказ {callback_data.order_id} на {date_order}')
@@ -135,6 +136,7 @@ async def accept_date_delete_order(call: CallbackQuery, state: FSMContext, callb
             log.error(text)
     else:
         await prepare_delete_history_order(callback_data.order_id, date_order)
+        await delete_document(callback_data.order_id, date_order)
         await call.message.edit_text(
             f'<b><u>Заказ удалён❌</u></b>\n'
             f'<b>Номер заказа</b>: <code>{callback_data.order_id}</code>\n'

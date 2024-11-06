@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 import config
-from core.database.ramarket_shop.model import HistoryOrders, OrderStatus
+from core.database.ramarket_shop.model import HistoryOrders, OrderStatus, Documents
 
 engine = create_async_engine(
     f"postgresql+asyncpg://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
@@ -109,6 +109,20 @@ async def prepare_delete_history_order(order_id: str, order_date: datetime):
         await session.commit()
 
 
+async def delete_document(order_id: str, order_date: datetime) -> None:
+    async with async_session() as session:
+        await session.execute(
+            update(Documents).
+            where(
+                (Documents.order_id == order_id) &
+                (func.to_char(Documents.date, 'YYYYMMDDHH24MI') == order_date.strftime('%Y%m%d%H%M'))
+            ).
+            values(
+                status=OrderStatus.delete,
+            ))
+        await session.commit()
+
+
 async def get_orders_by_order_id_and_date(order_id: str, date: datetime) -> list[HistoryOrders] | None:
     async with async_session() as session:
         query = select(HistoryOrders).filter(HistoryOrders.order_id == order_id)
@@ -131,6 +145,21 @@ async def update_date_order(order_id: str, old_date: datetime, new_date: datetim
             where(
                 (HistoryOrders.order_id == order_id) &
                 (func.to_char(HistoryOrders.date, 'YYYYMMDDHH24MI') == old_date.strftime('%Y%m%d%H%M'))
+            ).
+            values(
+                date=new_date,
+                status=OrderStatus.change_date
+            ))
+        await session.commit()
+
+
+async def update_date_document(order_id: str, old_date: datetime, new_date: datetime) -> None:
+    async with async_session() as session:
+        await session.execute(
+            update(Documents).
+            where(
+                (Documents.order_id == order_id) &
+                (func.to_char(Documents.date, 'YYYYMMDDHH24MI') == old_date.strftime('%Y%m%d%H%M'))
             ).
             values(
                 date=new_date,

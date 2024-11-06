@@ -9,7 +9,8 @@ from loguru import logger
 
 import config
 from core.database.queryDB import get_client_info
-from core.database.ramarket_shop.db_shop import create_excel_by_shop, create_excel_by_agent_id, create_excel_by_shops, get_orders_by_order_id_and_shop_id, update_date_order
+from core.database.ramarket_shop.db_shop import create_excel_by_shop, create_excel_by_agent_id, create_excel_by_shops, \
+    get_orders_by_order_id_and_shop_id, update_date_order, update_date_document
 from core.database.ramarket_shop.model import OrderStatus
 from core.keyboards.inline import getKeyboad_select_countries, getKeyboad_select_cities, getKeyboad_select_shop, getKeyboard_filters_history_orders, getKeyboad_orgs, \
     getKeyboard_shops_operations, getKeyboard_contracts, kb_select_order
@@ -340,6 +341,11 @@ async def msg_accept_new_date(message: Message, state: FSMContext):
     response, text = await api.post_change_date_doc(data['order_id'], data['order_date'], new_date.strftime('%Y%m%d%H%M%S'))
     if response.ok:
         await update_date_order(
+            order_id=data['order_id'],
+            old_date=datetime.datetime.strptime(data['order_date'], '%Y%m%d%H%M%S'),
+            new_date=new_date,
+        )
+        await update_date_document(
             order_id=data['order_id'],
             old_date=datetime.datetime.strptime(data['order_date'], '%Y%m%d%H%M%S'),
             new_date=new_date,

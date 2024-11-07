@@ -3,6 +3,7 @@ import enum
 from sqlalchemy import String, Column, DateTime, BigInteger, Enum, Float, ForeignKey, Numeric, Integer
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 import config
@@ -51,6 +52,8 @@ class Documents(Base):
     client_mail = Column(String(100))
     status = Column(Enum(OrderStatus, native_enum=False), default=OrderStatus.sale)
 
+    items = relationship("DocumentItems", backref="document", uselist=True, cascade="all, delete, delete-orphan")
+
 
 class DocumentItems(Base):
     __tablename__ = 'documentitems'
@@ -63,6 +66,9 @@ class DocumentItems(Base):
     product_groupid = Column(String(50))
     price = Column(Numeric(10, 2))
     quantity = Column(Integer)
+
+    document = relationship("Documents", backref="items", uselist=False)
+
 
 
 class HistoryOrders(Base):

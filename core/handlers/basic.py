@@ -11,7 +11,7 @@ from loguru import logger
 import config
 from core.database.queryDB import get_saved_phones, get_admins
 from core.database.ramarket_shop.db_shop import get_orders_by_1c_id, get_orders_by_order_id, delete_orders_by_order_id, \
-    prepare_delete_history_order
+    prepare_delete_history_order, delete_document
 from core.keyboards import inline
 from core.keyboards.inline import getKeyboard_start, getKeyboard_contacts, getKeyboard_delete_contacts, \
     getKeyboard_all_contacts, getKeyboard_start_delete_users, \

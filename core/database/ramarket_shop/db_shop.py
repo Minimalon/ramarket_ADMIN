@@ -7,10 +7,12 @@ from decimal import Decimal
 import pandas as pd
 from sqlalchemy import select, create_engine, text, distinct, func, DateTime, cast, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, joinedload
 
-import config
-from core.database.ramarket_shop.model import HistoryOrders, OrderStatus, Documents
+import configfrom
+
+core.database.ramarket_shop.model
+import HistoryOrders, OrderStatus, Documents
 
 engine = create_async_engine(
     f"postgresql+asyncpg://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
@@ -312,6 +314,17 @@ async def create_excel_by_shops(shop_id: list, file_name: str, start_date=None, 
         writer.sheets['orders'].set_column(col_idx, col_idx, column_length + 3)
     writer.close()
     return path_file
+
+
+async def get_documents_by_agent_id(agent_id: str, start_date: str = None, end_date: str = None) -> list[Documents]:
+    async with async_session() as session:
+        if start_date and end_date:
+            query = select(Documents).joinedload(Documents.items).where(Documents.agent_id == agent_id).where(
+                Documents.date >= start_date, Documents.date < end_date)
+        else:
+            query = select(Documents).joinedload(Documents.items).where(Documents.agent_id == agent_id)
+        result = await session.execute(query)
+        return result.scalars().all()
 
 
 if __name__ == '__main__':

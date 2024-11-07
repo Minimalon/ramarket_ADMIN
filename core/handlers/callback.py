@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, FSInputFile
 from loguru import logger
 
 from core.database.queryDB import delete_saved_phones, get_saved_phones, get_all_clients
-from core.database.ramarket_shop.db_shop import create_excel_by_agent_id
+from core.utils.history_orders import create_excel_by_agent_id
 from core.keyboards.inline import getKeyboard_currencies, getKeyboard_shop_functions, getKeyboard_delete_contacts, getKeyboard_delete_users, getKeyboard_filters_user_history_orders
 from core.oneC import api
 from core.oneC.oneC import get_employeeInfo

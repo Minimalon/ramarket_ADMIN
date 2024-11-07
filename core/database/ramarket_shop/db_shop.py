@@ -35,6 +35,7 @@ async def correct_df(df):
         'date',
         'order_id',
         'status',
+        'rezident',
         'agent_name',
         'country_name',
         'city_name',

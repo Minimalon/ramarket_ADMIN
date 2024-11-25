@@ -204,6 +204,8 @@ async def get_orders_by_1c_id(id: str, days):
 async def get_documents_by_agent_id(agent_id: str, start_date: str = None, end_date: str = None) -> list[Documents]:
     async with async_session() as session:
         if start_date and end_date:
+            start_date = datetime.fromisoformat(start_date)
+            end_date = datetime.fromisoformat(end_date)
             query = select(Documents).options(joinedload(Documents.items)).where(Documents.agent_id == agent_id).where(
                 Documents.date >= start_date, Documents.date < end_date)
         else:
@@ -212,19 +214,36 @@ async def get_documents_by_agent_id(agent_id: str, start_date: str = None, end_d
         return result.scalars().unique().all()
 
 
-async def get_documents_by_shop_id(shop_id: str, start_date: str = None, end_date: str = None) -> list[Documents]:
+async def get_documents_by_shop_id(
+        shop_id: str, start_date: str = None, end_date: str = None
+) -> list[Documents]:
     async with async_session() as session:
         if start_date and end_date:
-            query = select(Documents).options(joinedload(Documents.items)).where(Documents.shop_id == shop_id).where(
-                Documents.date >= start_date, Documents.date < end_date)
+            start_date_parsed = datetime.fromisoformat(start_date)
+            end_date_parsed = datetime.fromisoformat(end_date)
+
+            query = (
+                select(Documents)
+                .options(joinedload(Documents.items))
+                .where(Documents.shop_id == shop_id)
+                .where(
+                    Documents.date >= start_date_parsed,
+                    Documents.date < end_date_parsed,
+                )
+            )
         else:
-            query = select(Documents).options(joinedload(Documents.items)).where(Documents.shop_id == shop_id)
+            query = (
+                select(Documents)
+                .options(joinedload(Documents.items))
+                .where(Documents.shop_id == shop_id)
+            )
         result = await session.execute(query)
         return result.scalars().unique().all()
-
 async def get_documents_by_shops(shops: list[str], start_date: str = None, end_date: str = None) -> list[Documents]:
     async with async_session() as session:
         if start_date and end_date:
+            start_date = datetime.fromisoformat(start_date)
+            end_date = datetime.fromisoformat(end_date)
             query = select(Documents).options(joinedload(Documents.items)).where(Documents.shop_id.in_(shops)).where(
                 Documents.date >= start_date, Documents.date < end_date)
         else:

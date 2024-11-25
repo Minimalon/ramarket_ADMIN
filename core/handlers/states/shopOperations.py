@@ -220,21 +220,21 @@ async def send_history_all_days(call: CallbackQuery, state: FSMContext, bot: Bot
     data = await state.get_data()
     shop_info = await get_shop_by_id(data["shop_id"])
     path = await create_excel_by_shop_id(data["shop_id"], f"{'_'.join(shop_info.name.split())}__all")
+    await call.answer()
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
         log.error(f"Данный магазин еще не делал продаж")
         await call.message.answer(texts.error_head + "Данный магазин еще не делал продаж")
-    await call.answer()
 
 
 async def send_history_total_shops_all_days(call: CallbackQuery, state: FSMContext, bot: Bot):
-    await call.answer()
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info("Отправил историю заказов за всё время")
     response, all_shops = await api.get_all_shops()
     all_shops = [_['id'] for _ in all_shops]
     path = await create_excel_by_shops(all_shops, 'total_orders__all')
+    await call.answer()
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
@@ -243,7 +243,6 @@ async def send_history_total_shops_all_days(call: CallbackQuery, state: FSMConte
 
 
 async def history_shop_orders_by_days(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: HistoryShopOrdersByDays):
-    await call.answer()
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'История продаж магазина за {callback_data.days} дней')
     data = await state.get_data()
@@ -251,6 +250,7 @@ async def history_shop_orders_by_days(call: CallbackQuery, state: FSMContext, bo
     end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
     shop_info = await get_shop_by_id(data["shop_id"])
     path = await create_excel_by_shop_id(data["shop_id"], f"{'_'.join(shop_info.name.split())}__{callback_data.days}days", start_date=start_date, end_date=end_date)
+    await call.answer()
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
@@ -259,13 +259,13 @@ async def history_shop_orders_by_days(call: CallbackQuery, state: FSMContext, bo
 
 
 async def history_user_orders_by_days(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: HistoryUserOrdersByDays):
-    await call.answer()
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'История продаж пользователя за {callback_data.days} дней')
     start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
     end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
     data = await state.get_data()
     path = await create_excel_by_agent_id(data['user_id'], f"{'_'.join(data['agent_name'].split())}__{callback_data.days}days", start_date=start_date, end_date=end_date)
+    await call.answer()
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:
@@ -274,7 +274,6 @@ async def history_user_orders_by_days(call: CallbackQuery, state: FSMContext, bo
 
 
 async def history_total_shops(call: CallbackQuery, bot: Bot, callback_data: HistoryTotalShops):
-    await call.answer()
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'История продаж всех магазинов за {callback_data.days} дней')
     start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
@@ -282,6 +281,7 @@ async def history_total_shops(call: CallbackQuery, bot: Bot, callback_data: Hist
     response, all_shops = await api.get_all_shops()
     all_shops = [_['id'] for _ in all_shops]
     path = await create_excel_by_shops(all_shops, f'total_orders__{callback_data.days}days', start_date=start_date, end_date=end_date)
+    await call.answer()
     if path:
         await bot.send_document(call.message.chat.id, document=FSInputFile(path))
     else:

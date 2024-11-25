@@ -9,10 +9,8 @@ from sqlalchemy import select, create_engine, text, distinct, func, DateTime, ca
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, joinedload
 
-import configfrom
-
-core.database.ramarket_shop.model
-import HistoryOrders, OrderStatus, Documents
+import config
+from core.database.ramarket_shop.model import HistoryOrders, OrderStatus, Documents
 
 engine = create_async_engine(
     f"postgresql+asyncpg://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
@@ -203,128 +201,36 @@ async def get_orders_by_1c_id(id: str, days):
             q = await session.execute(select(distinct(HistoryOrders.order_id)).where(HistoryOrders.agent_id == id))
         return q.scalars().all()
 
-
-async def create_excel_by_agent_id(agent_id: str, file_name: str, start_date=None, end_date=None):
-    async with async_session() as session:
-        q = await session.execute(select(HistoryOrders).filter(HistoryOrders.agent_id == agent_id))
-        orders = q.scalars().first()
-        dir_path = Path(config.dir_path, 'files', 'historyOrders')
-        if not dir_path.exists():
-            dir_path.mkdir(parents=True, exist_ok=True)
-        path_file = dir_path / f"{file_name}.xlsx"
-        if orders is None:
-            return False
-        if start_date and end_date:
-            query = text(
-                f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE agent_id = \'{agent_id}\' '
-                f'AND date >= \'{start_date}\' AND date < \'{end_date}\' '
-                f'order by date DESC')
-        else:
-            query = text(
-                f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE agent_id = \'{agent_id}\' order by date DESC')
-        engine = create_engine(
-            f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
-        df = pd.read_sql(query, engine.connect())
-        if df.empty:
-            return False
-        df = await correct_df(df)
-        writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
-        df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
-
-        for column in df:
-            column_length = max(df[column].astype(str).map(len).max(), len(column))
-            col_idx = df.columns.get_loc(column)
-            writer.sheets['orders'].set_column(col_idx, col_idx, column_length + 3)
-        writer.close()
-        return path_file
-
-
-async def create_excel_by_shop(shop_id: str, file_name: str, start_date=None, end_date=None):
-    """
-    История продаж магазина, если нету дат, то отдаёт историю продаж за всё время
-    :param shop_id: ID магазина
-    :param shop_name: Имя магазина
-    :param start_date: С какого числа историю продаж
-    :param end_date: По какое число
-    :return: путь к эксель файлу
-    """
-    async with async_session() as session:
-        q = await session.execute(select(HistoryOrders).filter(HistoryOrders.shop_id == shop_id))
-        orders = q.scalars().first()
-        if not os.path.exists(os.path.join(config.dir_path, 'files', 'historyOrders')):
-            os.makedirs(os.path.join(config.dir_path, 'files', 'historyOrders'))
-        path_file = os.path.join(config.dir_path, 'files', 'historyOrders', f"{file_name}.xlsx")
-        if orders is None:
-            return False
-        if start_date and end_date:
-            query = text(
-                f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id = \'{shop_id}\' '
-                f'AND date >= \'{start_date}\' AND date < \'{end_date}\' '
-                f'order by date DESC')
-        else:
-            query = text(
-                f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id = \'{shop_id}\' order by date DESC')
-        engine = create_engine(
-            f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
-        df = pd.read_sql(query, engine.connect())
-        if df.empty:
-            return False
-        df = await correct_df(df)
-        writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
-        df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
-        for column in df:
-            column_length = max(df[column].astype(str).map(len).max(), len(column))
-            col_idx = df.columns.get_loc(column)
-            writer.sheets['orders'].set_column(col_idx, col_idx, column_length + 3)
-        writer.close()
-        return path_file
-
-
-async def create_excel_by_shops(shop_id: list, file_name: str, start_date=None, end_date=None):
-    """
-    История продаж магазина, если нету дат, то отдаёт историю продаж за всё время
-    :param shop_id: ID магазина
-    :param shop_name: Имя магазина
-    :param start_date: С какого числа историю продаж
-    :param end_date: По какое число
-    :return: путь к эксель файлу
-    """
-    if not os.path.exists(os.path.join(config.dir_path, 'files', 'historyOrders')):
-        os.makedirs(os.path.join(config.dir_path, 'files', 'historyOrders'))
-    path_file = os.path.join(config.dir_path, 'files', 'historyOrders', f"{file_name}.xlsx")
-    if start_date and end_date:
-        query = text(
-            f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id IN {tuple(shop_id)}'
-            f'AND date >= \'{start_date}\' AND date < \'{end_date}\' '
-            f'order by date DESC')
-    else:
-        query = text(
-            f'SELECT * FROM public."{HistoryOrders.__table__}" WHERE shop_id IN {tuple(shop_id)} order by date DESC')
-    engine = create_engine(
-        f"postgresql+psycopg2://{config.db_user}:{config.db_password}@{config.ip}:{config.port}/{config.database_ramarket}")
-    df = pd.read_sql(query, engine.connect())
-    if df.empty:
-        return False
-    df = await correct_df(df)
-    writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
-    df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
-    for column in df:
-        column_length = max(df[column].astype(str).map(len).max(), len(column))
-        col_idx = df.columns.get_loc(column)
-        writer.sheets['orders'].set_column(col_idx, col_idx, column_length + 3)
-    writer.close()
-    return path_file
-
-
 async def get_documents_by_agent_id(agent_id: str, start_date: str = None, end_date: str = None) -> list[Documents]:
     async with async_session() as session:
         if start_date and end_date:
-            query = select(Documents).joinedload(Documents.items).where(Documents.agent_id == agent_id).where(
+            query = select(Documents).options(joinedload(Documents.items)).where(Documents.agent_id == agent_id).where(
                 Documents.date >= start_date, Documents.date < end_date)
         else:
-            query = select(Documents).joinedload(Documents.items).where(Documents.agent_id == agent_id)
+            query = select(Documents).options(joinedload(Documents.items)).where(Documents.agent_id == agent_id)
         result = await session.execute(query)
-        return result.scalars().all()
+        return result.scalars().unique().all()
+
+
+async def get_documents_by_shop_id(shop_id: str, start_date: str = None, end_date: str = None) -> list[Documents]:
+    async with async_session() as session:
+        if start_date and end_date:
+            query = select(Documents).options(joinedload(Documents.items)).where(Documents.shop_id == shop_id).where(
+                Documents.date >= start_date, Documents.date < end_date)
+        else:
+            query = select(Documents).options(joinedload(Documents.items)).where(Documents.shop_id == shop_id)
+        result = await session.execute(query)
+        return result.scalars().unique().all()
+
+async def get_documents_by_shops(shops: list[str], start_date: str = None, end_date: str = None) -> list[Documents]:
+    async with async_session() as session:
+        if start_date and end_date:
+            query = select(Documents).options(joinedload(Documents.items)).where(Documents.shop_id.in_(shops)).where(
+                Documents.date >= start_date, Documents.date < end_date)
+        else:
+            query = select(Documents).options(joinedload(Documents.items)).where(Documents.shop_id.in_(shops))
+        result = await session.execute(query)
+        return result.scalars().unique().all()
 
 
 if __name__ == '__main__':

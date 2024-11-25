@@ -1,21 +1,21 @@
 from pathlib import Path
-
+from datetime import datetime
 import pandas as pd
 
-from core.database.ramarket_shop.db_shop import get_documents_by_agent_id
+from core.database.ramarket_shop.db_shop import get_documents_by_agent_id, get_documents_by_shop_id, \
+    get_documents_by_shops
 import config
 from core.database.ramarket_shop.model import Documents
 from typing import Generator
 
 
-async def data_for_df(documents: list[Documents]) -> list[dict]:
-    data = []
+def data_for_df(documents: list[Documents]) -> Generator[dict, None, None]:
     for doc in documents:
-        for item in doc:
-            data.append({
+        for item in doc.items:
+            yield {
                 'Дата': doc.date,
                 'Номер заказа': doc.order_id,
-                'Статус': doc.status,
+                'Статус': doc.status.name,
                 'Резидент': doc.rezident,
                 'Имя агента': doc.agent_name,
                 'Страна': doc.country_name,
@@ -37,8 +37,7 @@ async def data_for_df(documents: list[Documents]) -> list[dict]:
                 'Клиент': doc.client_name,
                 'Телефон': doc.client_phone,
                 'Email': doc.client_mail
-            })
-    return data
+            }
 
 
 async def correct_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -52,20 +51,83 @@ async def correct_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+async def write_to_excel(path_file: Path, df: pd.DataFrame):
+    # Записываем данные в Excel с использованием XlsxWriter
+    with pd.ExcelWriter(path_file, engine="xlsxwriter") as writer:
+        df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
+
+        # Определяем рабочий лист
+        worksheet = writer.sheets['orders']
+
+        # Устанавливаем автофильтр на диапазон данных
+        max_row, max_col = df.shape
+        worksheet.autofilter(0, 0, max_row, max_col - 1)
+
+        # Устанавливаем ширину колонок на основе максимальной длины данных
+        for column in df:
+            column_length = max(df[column].astype(str).map(len).max(), len(column))
+            col_idx = df.columns.get_loc(column)
+            worksheet.set_column(col_idx, col_idx, column_length + 3)
+
+
 async def create_excel_by_agent_id(agent_id: str, file_name: str, start_date=None, end_date=None):
     orders = await get_documents_by_agent_id(agent_id, start_date, end_date)
     if not orders:
         return False
+
+    # Путь для сохранения файла
     dir_path = Path(config.dir_path, 'files', 'historyOrders')
     dir_path.mkdir(parents=True, exist_ok=True)
     path_file = dir_path / f"{file_name}.xlsx"
-    df = pd.DataFrame(await data_for_df(orders))
+
+    # Создаем DataFrame из данных
+    df = pd.DataFrame(data_for_df(orders))
     df = await correct_df(df)
-    writer = pd.ExcelWriter(path_file, engine="xlsxwriter")
-    df.to_excel(writer, sheet_name='orders', index=False, na_rep='NaN')
-    for column in df:
-        column_length = max(df[column].astype(str).map(len).max(), len(column))
-        col_idx = df.columns.get_loc(column)
-        writer.sheets['orders'].set_column(col_idx, col_idx, column_length + 3)
-    writer.close()
+
+    await write_to_excel(path_file, df)
+
     return path_file
+
+
+async def create_excel_by_shop_id(shop_id: str, file_name: str, start_date=None, end_date=None):
+    orders = await get_documents_by_shop_id(shop_id, start_date, end_date)
+    if not orders:
+        return False
+
+    # Путь для сохранения файла
+    dir_path = Path(config.dir_path, 'files', 'historyOrders')
+    dir_path.mkdir(parents=True, exist_ok=True)
+    path_file = dir_path / f"{file_name}.xlsx"
+
+    # Создаем DataFrame из данных
+    df = pd.DataFrame(data_for_df(orders))
+    df = await correct_df(df)
+
+    await write_to_excel(path_file, df)
+
+    return path_file
+
+
+async def create_excel_by_shops(shops: list[str], file_name: str, start_date=None, end_date=None) -> Path:
+    orders = await get_documents_by_shops(shops, start_date, end_date)
+    if not orders:
+        return False
+
+    # Путь для сохранения файла
+    dir_path = Path(config.dir_path, 'files', 'historyOrders')
+    dir_path.mkdir(parents=True, exist_ok=True)
+    path_file = dir_path / f"{file_name}.xlsx"
+
+    # Создаем DataFrame из данных
+    df = pd.DataFrame(data_for_df(orders))
+    df = await correct_df(df)
+
+    await write_to_excel(path_file, df)
+
+    return path_file
+
+
+if __name__ == '__main__':
+    import asyncio
+
+    asyncio.run(create_excel_by_agent_id('7402697', 'test', '2022-11-01', '2024-11-07'))

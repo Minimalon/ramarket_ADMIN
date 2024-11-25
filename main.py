@@ -6,6 +6,7 @@ import os
 
 import aiogram.exceptions
 from aiogram import Dispatcher, F, Bot
+from aiogram.client.default import DefaultBotProperties
 from aiogram.filters import Command, ExceptionTypeFilter
 from aiogram.fsm.storage.redis import RedisStorage
 from loguru import logger
@@ -42,7 +43,7 @@ async def start():
     logger.add(os.path.join(config.dir_path, 'logs', 'debug.log'),
                format="{time} | {level} | {name}:{function}:{line} | {message} | {extra}", )
 
-    bot = Bot(token=config.token, parse_mode='HTML')
+    bot = Bot(token=config.token, default=DefaultBotProperties(parse_mode='HTML'))
     await get_commands(bot)
     admins = await get_admins()
     await get_commands_admins(bot, admins)

@@ -52,9 +52,8 @@ class Documents(Base):
     client_mail = Column(String(100))
     status = Column(Enum(OrderStatus, native_enum=False), default=OrderStatus.sale)
 
-    items = relationship("DocumentItems", backref="document", uselist=True, cascade="all, delete, delete-orphan")
-
-
+    items = relationship("DocumentItems", back_populates="document", uselist=True, cascade="all, delete, delete-orphan",
+                         foreign_keys="[DocumentItems.document_id]")
 class DocumentItems(Base):
     __tablename__ = 'documentitems'
     id = Column(BigInteger, nullable=False, primary_key=True)
@@ -67,7 +66,7 @@ class DocumentItems(Base):
     price = Column(Numeric(10, 2))
     quantity = Column(Integer)
 
-    document = relationship("Documents", backref="items", uselist=False)
+    document = relationship("Documents", back_populates="items", uselist=False, foreign_keys=[document_id])
 
 
 

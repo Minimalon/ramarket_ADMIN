@@ -13,7 +13,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
 
 import config
-from core.cron.history_orders import send_history_orders, send_email_historyOrders_today
+from core.cron.history_orders import send_email_historyOrders_today
 from core.database.model import init_models
 from core.database.queryDB import get_admins
 from core.handlers import contact, errors_hand
@@ -57,7 +57,7 @@ async def start():
 
     # CRON
     scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
-    scheduler.add_job(send_email_historyOrders_today, trigger='cron', minutes=0, hour='9,15,23')
+    scheduler.add_job(send_email_historyOrders_today, trigger='cron', minute=0, hour='9,15,23')
     scheduler.start()
 
     # Errors handlers

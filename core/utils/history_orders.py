@@ -108,10 +108,11 @@ async def create_excel_by_shop_id(shop_id: str, file_name: str, start_date=None,
     return path_file
 
 
-async def create_excel_by_shops(shops: list[str], file_name: str, start_date=None, end_date=None) -> Path:
+async def create_excel_by_shops(shops: list[str], file_name: str, start_date=None, end_date=None) -> Path | None:
     orders = await get_documents_by_shops(shops, start_date, end_date)
+    print(orders)
     if not orders:
-        return False
+        return
 
     # Путь для сохранения файла
     dir_path = Path(config.dir_path, 'files', 'historyOrders')

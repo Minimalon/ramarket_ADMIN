@@ -9,9 +9,11 @@ from aiogram import Dispatcher, F, Bot
 # from aiogram.client.default import DefaultBotProperties
 from aiogram.filters import Command, ExceptionTypeFilter
 from aiogram.fsm.storage.redis import RedisStorage
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
 
 import config
+from core.cron.history_orders import send_history_orders, send_email_historyOrders_today
 from core.database.model import init_models
 from core.database.queryDB import get_admins
 from core.handlers import contact, errors_hand
@@ -52,7 +54,11 @@ async def start():
 
     storage = RedisStorage.from_url(config.redisStorage)
     dp = Dispatcher(storage=storage)
-    # dp = Dispatcher()
+
+    # CRON
+    scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+    scheduler.add_job(send_email_historyOrders_today, trigger='cron', minutes=0, hour='9,15,23')
+    scheduler.start()
 
     # Errors handlers
     dp.errors.register(errors_hand.error_total, ExceptionTypeFilter(Exception))

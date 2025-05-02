@@ -10,7 +10,8 @@ from loguru import logger
 import config
 from core.database.queryDB import get_client_info
 from core.utils.history_orders import create_excel_by_shops, create_excel_by_shop_id, create_excel_by_agent_id
-from core.database.ramarket_shop.db_shop import get_orders_by_order_id_and_shop_id, update_date_order, update_date_document
+from core.database.ramarket_shop.db_shop import get_orders_by_order_id_and_shop_id, update_date_order, \
+    update_date_document, get_uniq_shop_ids
 from core.database.ramarket_shop.model import OrderStatus
 from core.keyboards.inline import getKeyboad_select_countries, getKeyboad_select_cities, getKeyboad_select_shop, getKeyboard_filters_history_orders, getKeyboad_orgs, \
     getKeyboard_shops_operations, getKeyboard_contracts, kb_select_order
@@ -199,8 +200,10 @@ async def end_period(message: Message, state: FSMContext, bot: Bot):
                 log.error(f"Данный пользователь не делал продаж за данный период времени с {data['start_period']} по {message.text}")
                 await message.answer(texts.error_head + f"Данный пользователь не делал продаж за данный период времени с {data['start_period']} по {message.text}")
         elif re.findall('HistoryOrdersAll', str(await state.get_state())):
-            response, all_shops = await api.get_all_shops()
-            all_shops = [_['id'] for _ in all_shops]
+            # response, all_shops = await api.get_all_shops() # Убрал так как иногда удаляются магазины в 1С
+            # all_shops = [_['id'] for _ in all_shops]
+            all_shops = await get_uniq_shop_ids()
+
             file_name = f"total_orders__{start_date}_{end_date}"
             path = await create_excel_by_shops(all_shops, file_name, start_date=data['start_period'], end_date=message.text)
             if path:

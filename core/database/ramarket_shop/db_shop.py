@@ -213,6 +213,10 @@ async def get_documents_by_agent_id(agent_id: str, start_date: str = None, end_d
         result = await session.execute(query)
         return result.scalars().unique().all()
 
+async def get_uniq_shop_ids() -> list[str]:
+    async with async_session() as session:
+        q = await session.execute(select(distinct(HistoryOrders.shop_id)))
+        return q.scalars().all()
 
 async def get_documents_by_shop_id(
         shop_id: str, start_date: str = None, end_date: str = None
@@ -253,5 +257,6 @@ async def get_documents_by_shops(shops: list[str], start_date: str = None, end_d
 
 
 if __name__ == '__main__':
-    a = asyncio.run(get_counts_shop_sales('5502601', '2023-05-23', '2023-07-01'))
+    # a = asyncio.run(get_counts_shop_sales('5502601', '2023-05-23', '2023-07-01'))
+    a = asyncio.run(get_uniq_shop_ids())
     print(a)

@@ -353,13 +353,6 @@ async def msg_accept_new_date(message: Message, state: FSMContext):
             old_date=datetime.datetime.strptime(data['order_date'], '%Y%m%d%H%M%S'),
             new_date=new_date,
         )
-        config_file = os.path.join(config.dir_path, 'core', 'utils', 'pythonapp.json')
-        if config.develope_mode:
-            ss = Spreadsheet(config_file, 'test_sales', spreadsheetId='1dWAQdnsfXoebDNegKL6kNE77OgwOIP0Df87o4DlhF7s')
-        else:
-            ss = Spreadsheet(config_file, 'sales', spreadsheetId='1dWAQdnsfXoebDNegKL6kNE77OgwOIP0Df87o4DlhF7s')
-        old_date = datetime.datetime.strptime(data['order_date'], '%Y%m%d%H%M%S')
-        ss.change_date_row(data['order_id'], new_date, old_date)
         await message.answer(texts.success_head + 'Дата чека изменена')
         log.success(f'Изменил дату чека "{data["order_id"]}" на "{new_date}"')
     else:

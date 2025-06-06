@@ -249,8 +249,12 @@ async def history_shop_orders_by_days(call: CallbackQuery, state: FSMContext, bo
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'История продаж магазина за {callback_data.days} дней')
     data = await state.get_data()
-    start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
-    end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
+    if callback_data.days < 0:
+        start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=1 + abs(callback_data.days)), '%Y-%m-%d')
+        end_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=1), '%Y-%m-%d')
+    else:
+        start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
+        end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
     shop_info = await get_shop_by_id(data["shop_id"])
     path = await create_excel_by_shop_id(data["shop_id"], f"{'_'.join(shop_info.name.split())}__{callback_data.days}days", start_date=start_date, end_date=end_date)
     await call.answer()
@@ -264,8 +268,12 @@ async def history_shop_orders_by_days(call: CallbackQuery, state: FSMContext, bo
 async def history_user_orders_by_days(call: CallbackQuery, state: FSMContext, bot: Bot, callback_data: HistoryUserOrdersByDays):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'История продаж пользователя за {callback_data.days} дней')
-    start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
-    end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
+    if callback_data.days < 0:
+        start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=1 + abs(callback_data.days)), '%Y-%m-%d')
+        end_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=1), '%Y-%m-%d')
+    else:
+        start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
+        end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
     data = await state.get_data()
     path = await create_excel_by_agent_id(data['user_id'], f"{'_'.join(data['agent_name'].split())}__{callback_data.days}days", start_date=start_date, end_date=end_date)
     await call.answer()
@@ -279,8 +287,12 @@ async def history_user_orders_by_days(call: CallbackQuery, state: FSMContext, bo
 async def history_total_shops(call: CallbackQuery, bot: Bot, callback_data: HistoryTotalShops):
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'История продаж всех магазинов за {callback_data.days} дней')
-    start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
-    end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
+    if callback_data.days < 0:
+        start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=1 + abs(callback_data.days)), '%Y-%m-%d')
+        end_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=1), '%Y-%m-%d')
+    else:
+        start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
+        end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
     response, all_shops = await api.get_all_shops()
     all_shops = [_['id'] for _ in all_shops]
     path = await create_excel_by_shops(all_shops, f'total_orders__{callback_data.days}days', start_date=start_date, end_date=end_date)

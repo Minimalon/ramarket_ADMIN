@@ -46,6 +46,7 @@ async def getKeyboard_contacts(contacts):
 
 async def getKeyboard_filters_user_history_orders():
     keyboard = InlineKeyboardBuilder()
+    keyboard.button(text='За вчерашний день', callback_data=HistoryUserOrdersByDays(days=-1))
     keyboard.button(text='Сегодня', callback_data=HistoryUserOrdersByDays(days=0))
     keyboard.button(text='7 дней', callback_data=HistoryUserOrdersByDays(days=7))
     keyboard.button(text='30 дней', callback_data=HistoryUserOrdersByDays(days=30))

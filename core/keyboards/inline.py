@@ -79,7 +79,7 @@ def getKeyboard_contracts(contracts):
 
 async def getKeyboard_filters_total_shop_history_orders():
     keyboard = InlineKeyboardBuilder()
-    keyboard.button(text='За вчерашний день', callback_data=HistoryUserOrdersByDays(days=-1))
+    keyboard.button(text='За вчерашний день', callback_data=HistoryTotalShops(days=-1))
     keyboard.button(text='Сегодня', callback_data=HistoryTotalShops(days=0))
     keyboard.button(text='7 дней', callback_data=HistoryTotalShops(days=7))
     keyboard.button(text='30 дней', callback_data=HistoryTotalShops(days=30))

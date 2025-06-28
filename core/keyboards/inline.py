@@ -317,7 +317,7 @@ def kb_select_delete_order(orders: list[HistoryOrders]):
 
 def kb_send_cash_select_currency():
     keyboard = InlineKeyboardBuilder()
-    for currency in ['USD', 'TRY', 'EUR', 'RUB']:
+    for currency in ['USD', 'TRY', 'EUR','USDT', 'RUB']:
         keyboard.button(text=currency, callback_data=SendCashCurrency(currency=currency))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()

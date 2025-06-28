@@ -46,6 +46,7 @@ class Documents(Base):
     sum_try = Column(Numeric(20, 2))
     sum_kzt = Column(Numeric(20, 2))
     sum_eur = Column(Numeric(20, 2))
+    sum_usdt = Column(Numeric(20, 2))
     currency = Column(String(10))
     currency_price = Column(Numeric(10, 4))
     client_name = Column(String(100))

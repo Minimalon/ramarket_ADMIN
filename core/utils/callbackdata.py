@@ -110,3 +110,6 @@ class SendCashUser(CallbackData, prefix='send_cash_user'):
 
 class SendCashShop(CallbackData, prefix='send_cash_shop'):
     shop_id: str
+
+class CurrencyCreateOst(CallbackData, prefix='currency_createOst'):
+    currency: str

@@ -21,3 +21,23 @@ class User(BaseModel):
     admin: str = Field('', description="Админ", alias="Админ")
     phone: str = Field('', description="Телефон", alias="Телефон")
     shops: list[Shop] = Field(description="Магазины", alias="Магазины")
+
+class ShopBalance(BaseModel):
+    shop_id: str = Field(alias='Магазин')
+    shop_name: str = Field(alias='Наименование')
+    currency: str = Field(alias='Валюта')
+    balance: int = Field(alias='СостояниеРасчетов')
+
+class CreateOstatok(BaseModel):
+    shop_id: str = Field(alias='Shop')
+    amount: str = Field(alias='Amount')
+    user_id: str = Field(alias='User')
+    currency: str = Field(alias='Currency')
+    currency_price: str = Field(alias='KursPrice')
+
+class CreateRKO(BaseModel):
+    shop_id: str = Field(alias='Shop')
+    amount: str = Field(alias='Amount')
+    user_id: str = Field(alias='User')
+    currency: str = Field(alias='Currency')
+    currency_price: str = Field(alias='KursPrice')

@@ -73,7 +73,17 @@ async def select_shop_operations(call: CallbackQuery, callback_data: Shops, stat
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     await state.update_data(shop_id=callback_data.code, org_id=callback_data.org_id)
     log.info(f'Выбрал магазин {callback_data.code}')
-    await call.message.edit_text('Выберите нужную операцию', reply_markup=getKeyboard_shops_operations())
+    r, a = await api.get_balance_shop(callback_data.code)
+    if len(a) == 0:
+        await call.message.edit_text('Выберите нужную операцию',
+                                     reply_markup=getKeyboard_shops_operations(
+                                         create_ostatok=True
+                                     ))
+    else:
+        await call.message.edit_text('Выберите нужную операцию\nОстаток у магазина задан✅',
+                                     reply_markup=getKeyboard_shops_operations(
+                                         create_ostatok=True
+                                     ))
 
 
 async def select_change_contract(call: CallbackQuery, state: FSMContext):

@@ -22,11 +22,13 @@ def getKeyboard_start():
     return keyboard.as_markup()
 
 
-def getKeyboard_shops_operations():
+def getKeyboard_shops_operations(create_ostatok: bool = False):
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='История продаж', callback_data='history_orders')
     keyboard.button(text='Изменить договор', callback_data='change_contract')
     keyboard.button(text='Изменить дату чека', callback_data='change_date_order')
+    if create_ostatok:
+        keyboard.button(text='Создать остаток', callback_data='create_ostatok')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -342,5 +344,20 @@ def kb_send_cash_select_shop(shops):
 def kb_send_cash_confirm():
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='Отправить ✅', callback_data='send_cash_confirm')
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+def kb_createOst_currency():
+    keyboard = InlineKeyboardBuilder()
+    keyboard.button(text='USD', callback_data=CurrencyCreateOst(currency='USD'))
+    keyboard.button(text='TRY', callback_data=CurrencyCreateOst(currency='TRY'))
+    keyboard.button(text='RUB', callback_data=CurrencyCreateOst(currency='RUB'))
+    keyboard.button(text='EUR', callback_data=CurrencyCreateOst(currency='EUR'))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+def kb_createOst_confirm():
+    keyboard = InlineKeyboardBuilder()
+    keyboard.button(text='Создать✅', callback_data='confirm_createOst')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()

@@ -2,8 +2,10 @@ import asyncio
 import json
 
 import aiohttp
+from aiohttp import ClientResponse
 
 import config
+from core.oneC.pd_model import CreateOstatok
 
 
 class Api:
@@ -219,6 +221,17 @@ class Api:
             async with session.post(f"{self.adress}/CreateRKO", data=data) as response:
                 return response, await response.text()
 
+    async def create_ostatok(self, rko: CreateOstatok) -> [ClientResponse, str]:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{self.adress}/CreateRKO", data=rko.model_dump_json(by_alias=True)) as response:
+                return response, await response.text()
+
+    async def get_balance_shop(self, shop_id: str) -> [ClientResponse, dict]:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{self.adress}/GeDebt", data=json.dumps({"Shop": shop_id})) as response:
+                return response, await response.json()
+
 
 if __name__ == '__main__':
-    print(asyncio.run(Api().user_add_shop('7402575', ['5502630'])))
+    r, a = (asyncio.run(Api().get_balance_shop('5502630')))
+

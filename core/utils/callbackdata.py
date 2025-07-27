@@ -5,6 +5,10 @@ class EmployeeAdmin(CallbackData, prefix='employeeAdmin'):
     admin: bool
 
 
+class EmployeePravoRKO(CallbackData, prefix='employeePravoRKO'):
+    pravoRKO: bool
+
+
 class CreateEmployee(CallbackData, prefix='employee'):
     phone: str
 
@@ -113,3 +117,7 @@ class SendCashShop(CallbackData, prefix='send_cash_shop'):
 
 class CurrencyCreateOst(CallbackData, prefix='currency_createOst'):
     currency: str
+
+class CbDataPravoRKO(CallbackData, prefix='pravoRKO'):
+    pravoRKO: bool
+    one_user_id: str

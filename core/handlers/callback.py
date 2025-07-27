@@ -5,13 +5,14 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile
 from loguru import logger
 
-from core.database.queryDB import delete_saved_phones, get_saved_phones, get_all_clients
+from core.database.queryDB import delete_saved_phones, get_saved_phones, get_all_clients, get_client_info_by_phone, \
+    get_client_info
 from core.utils.history_orders import create_excel_by_agent_id
 from core.keyboards.inline import getKeyboard_currencies, getKeyboard_shop_functions, getKeyboard_delete_contacts, getKeyboard_delete_users, getKeyboard_filters_user_history_orders
 from core.oneC import api
-from core.oneC.oneC import get_employeeInfo
+from core.oneC.oneC import get_employeeInfo, get_employeeInfo_agent_id
 from core.utils import texts
-from core.utils.callbackdata import DeleteContact, DeleteUsers
+from core.utils.callbackdata import DeleteContact, DeleteUsers, CbDataPravoRKO
 from core.utils.states import HistoryOrdersUser, CreateKontragent
 
 api = api.Api()
@@ -117,6 +118,28 @@ async def start_create_kontragent(call: CallbackQuery, state: FSMContext):
     log.info('Нажали "Создать Контрагента"')
     await call.message.answer("Напишите полное название контрагента")
     await state.set_state(CreateKontragent.name)
+
+async def change_pravoRKO(call: CallbackQuery, callback_data: CbDataPravoRKO):
+    log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
+    log.info(f'Выдача наличных "{callback_data.pravoRKO}"')
+    oneC_user = await get_employeeInfo_agent_id(callback_data.one_user_id)
+    if callback_data.pravoRKO:
+        oneC_user['ПравоРКО'] = 'Да'
+        response, txt = await api.recreate_employ(oneC_user)
+        if response.ok:
+            await call.message.answer(f"✅ Разрешили выдачу наличных пользователю {oneC_user['Наименование']}")
+        else:
+            await call.message.answer('Ошибка со стороны 1С у метода CreateSotr\n\n' + txt)
+            log.error(txt)
+    else:
+        oneC_user['ПравоРКО'] = 'Нет'
+        response, txt = await api.recreate_employ(oneC_user)
+        if response.ok:
+            await call.message.answer(f"❌ Запретили выдачу наличных пользователю {oneC_user['Наименование']}")
+        else:
+            await call.message.answer('Ошибка со стороны 1С у метода CreateSotr\n\n' + txt)
+            log.error(txt)
+
 
 
 if __name__ == '__main__':

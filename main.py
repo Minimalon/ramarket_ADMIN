@@ -22,7 +22,7 @@ from core.handlers.basic import get_start, video_tutorial, contacts, start_delet
     create_kontragent, test, start_delete_order, accept_orderID_delete_order, accept_date_delete_order
 from core.handlers.callback import select_to_delete_contacts, select_currency, history_one_user_all_days, \
     delete_contacts, functions_shop, select_to_delete_users, delete_users, \
-    select_filter_user_history_orders, start_create_kontragent
+    select_filter_user_history_orders, start_create_kontragent, change_pravoRKO
 from core.handlers.states import shops, createShop, addContact, createEmployee, shopOperations
 from core.handlers.states.createOstatok import start_create_ost
 from core.handlers.states.updateCurrencyPriceAll import get_price, update_price
@@ -30,7 +30,7 @@ from core.middlewares.checkReg import CheckRegistrationCallbackMiddleware, Check
 from core.utils.callbackdata import SavedContact, DeleteContact, CreateEmployee, EmployeeAdmin, Country, City, Shops, \
     Currencyes, Kontragent, RemoveShop, AddShop, CurrencyOneShop, \
     Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract, SelectOrder, \
-    DeleteOrder, CurrencyCreateOst
+    DeleteOrder, CurrencyCreateOst, CbDataPravoRKO
 from core.utils.commands import get_commands, get_commands_admins
 from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop, CreateShop, UpdateCurrencyPriceAll, \
     Contact, OneShopCurrency, HistoryOrdersUser, HistoryOrdersAll, \
@@ -182,6 +182,9 @@ async def start():
     dp.message.register(createOstatok.accept_amount, StateCreateOstatok.amount)
     dp.callback_query.register(createOstatok.confirm_createOst, CurrencyCreateOst.filter())
     dp.callback_query.register(createOstatok.created_createOst, F.data == 'confirm_createOst')
+
+    # Изменить пользователю выдачу наличных
+    dp.callback_query.register(change_pravoRKO, CbDataPravoRKO.filter())
 
 
     # Routers

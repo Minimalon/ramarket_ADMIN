@@ -14,6 +14,10 @@ api = Api()
 async def get_employeeInfo(phone):
     return await api.get_client_info(phone)
 
+async def get_employeeInfo_agent_id(agent_id: str):
+    response, all_users = await api.get_all_users()
+    return [user for user in all_users if user['id'] == agent_id][0]
+
 
 async def get_shop_name(phone, shop_id):
     for shop in (await api.get_client_info(phone))['Магазины']:

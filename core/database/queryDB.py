@@ -38,6 +38,14 @@ async def get_client_info(chat_id) -> Clients:
             return False
         return client
 
+async def get_client_info_by_phone(phone: str) -> Clients:
+    async with async_session() as session:
+        q = await session.execute(select(Clients).filter(Clients.phone_number == phone))
+        client = q.scalars().first()
+        if client is None:
+            return False
+        return client
+
 
 async def get_admins(chat_id=None):
     async with async_session() as session:

@@ -45,7 +45,9 @@ async def employee_true(employeeInfo, phone, admin_info, superadmin):
             f'<b>Имя сотрудника</b>: <code>{employeeInfo["Наименование"]}</code>\n'
             f'<b>Сотовый</b>: <code>{phone}</code>\n'
             f'<b>Магазины</b>: <code>{funcy.str_join(sep="|", seq=shops)}</code>\n'
-            f'<b>Администратор</b>: <code>{employeeInfo["Администратор"]}</code>\n')
+            f'<b>Администратор</b>: <code>{employeeInfo["Администратор"]}</code>\n'
+            f'<b>Выдача наличных</b>: <code>{employeeInfo["ПравоРКО"]}</code>\n'
+            )
 
     sales_text = (f'➖➖➖➖➖➖➖➖➖➖➖\n'
                   f'ℹ️ <b>Продажи:</b>\n'

@@ -19,6 +19,7 @@ class User(BaseModel):
     name: str = Field('', description="Название пользователя", alias="Наименование")
     id: str = Field('', description="ID пользователя", alias="id")
     admin: str = Field('', description="Админ", alias="Админ")
+    pravoRKO: str = Field('', description="Админ", alias="ПравоРКО")
     phone: str = Field('', description="Телефон", alias="Телефон")
     shops: list[Shop] = Field(description="Магазины", alias="Магазины")
 

@@ -37,16 +37,31 @@ class Api:
             async with session.post(f"{self.adress}/CreateTT", data=json.dumps(data)) as response:
                 return response, await response.text()
 
-    async def create_employ(self, name: str, admin: bool, phone: str):
+    async def create_employ(self, name: str, admin: bool, phone: str, pravoRKO: bool):
         """
         Создать сотрудника
+        :param pravoRKO: Сотрудник может выдавать наличные?
         :param name: ФИО сотрудника
         :param admin: булевое значение
         :param phone: Сотовый сотрудника
         :return: response: Ответ сервера HTTP, text: Ответ в виде текста от сервера
         """
-        data = {"Name": name, "Admin": admin, "Tel": phone, "Itemc": []}
+        data = {"Name": name, "Admin": admin, "PravoRKO": pravoRKO, "Tel": phone, "Itemc": []}
         async with aiohttp.ClientSession() as session:
+            async with session.post(f"{self.adress}/CreateSotr", data=json.dumps(data)) as response:
+                return response, await response.text()
+
+    async def recreate_employ(self, user_info: dict):
+        data = {
+            "Name": user_info['Наименование'],
+            "Admin": True if user_info['Администратор'] == 'Да' else False,
+            "PravoRKO": True if user_info['ПравоРКО'] == 'Да' else False,
+            "Tel": user_info['Телефон'],
+            'Itemc': [{'Sklad': shop['idМагазин']} for shop in user_info['Магазины']]
+        }
+        print(data)
+        async with aiohttp.ClientSession() as session:
+            print(json.dumps(data))
             async with session.post(f"{self.adress}/CreateSotr", data=json.dumps(data)) as response:
                 return response, await response.text()
 
@@ -234,4 +249,3 @@ class Api:
 
 if __name__ == '__main__':
     r, a = (asyncio.run(Api().get_balance_shop('5502630')))
-

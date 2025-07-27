@@ -28,6 +28,7 @@ class CreateShop(StatesGroup):
 
 class StatesCreateEmployee(StatesGroup):
     admin = State()
+    pravoRKO = State()
     name = State()
 
 

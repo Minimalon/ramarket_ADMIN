@@ -162,6 +162,10 @@ def getKeyboard_contact_true(superadmin: bool, employee_info, admin_info):
             if admin_shop in (shop['idМагазин'] for shop in employee_info['Магазины']) or superadmin:
                 keyboard.button(text='История продаж', callback_data='historyOrdersOneUser')
                 break
+    if employee_info['ПравоРКО'] == 'Да':
+        keyboard.button(text='❌ Запретить выдачу наличных', callback_data=CbDataPravoRKO(pravoRKO=False, one_user_id=employee_info['id']))
+    else:
+        keyboard.button(text='✅ Разрешить выдачу наличных', callback_data=CbDataPravoRKO(pravoRKO=True, one_user_id=employee_info['id']))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -177,6 +181,13 @@ def getKeyboard_select_admin():
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='Да', callback_data=EmployeeAdmin(admin=True))
     keyboard.button(text='Нет', callback_data=EmployeeAdmin(admin=False))
+    keyboard.adjust(2, repeat=True)
+    return keyboard.as_markup()
+
+def kb_select_pravoRKO():
+    keyboard = InlineKeyboardBuilder()
+    keyboard.button(text='Да', callback_data=EmployeePravoRKO(pravoRKO=True))
+    keyboard.button(text='Нет', callback_data=EmployeePravoRKO(pravoRKO=False))
     keyboard.adjust(2, repeat=True)
     return keyboard.as_markup()
 

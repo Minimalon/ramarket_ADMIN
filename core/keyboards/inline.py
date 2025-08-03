@@ -52,8 +52,8 @@ async def getKeyboard_filters_user_history_orders():
     keyboard.button(text='Сегодня', callback_data=HistoryUserOrdersByDays(days=0))
     keyboard.button(text='7 дней', callback_data=HistoryUserOrdersByDays(days=7))
     keyboard.button(text='30 дней', callback_data=HistoryUserOrdersByDays(days=30))
-    keyboard.button(text='За всё время', callback_data='orders_user_all_days')
-    keyboard.button(text='Промежуток времени', callback_data='history_period_user')
+    # keyboard.button(text='За всё время', callback_data='orders_user_all_days')
+    # keyboard.button(text='Промежуток времени', callback_data='history_period_user')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -64,8 +64,8 @@ async def getKeyboard_filters_history_orders():
     keyboard.button(text='Сегодня', callback_data=HistoryShopOrdersByDays(days=0))
     keyboard.button(text='7 дней', callback_data=HistoryShopOrdersByDays(days=7))
     keyboard.button(text='30 дней', callback_data=HistoryShopOrdersByDays(days=30))
-    keyboard.button(text='За всё время', callback_data='history_all_days')
-    keyboard.button(text='Промежуток времени', callback_data='history_period_shop')
+    # keyboard.button(text='За всё время', callback_data='history_all_days')
+    # keyboard.button(text='Промежуток времени', callback_data='history_period_shop')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 

@@ -30,7 +30,7 @@ from core.middlewares.checkReg import CheckRegistrationCallbackMiddleware, Check
 from core.utils.callbackdata import SavedContact, DeleteContact, CreateEmployee, EmployeeAdmin, Country, City, Shops, \
     Currencyes, Kontragent, RemoveShop, AddShop, CurrencyOneShop, \
     Org, DeleteUsers, HistoryShopOrdersByDays, HistoryUserOrdersByDays, HistoryTotalShops, Contract, SelectOrder, \
-    DeleteOrder, CurrencyCreateOst, CbDataPravoRKO
+    DeleteOrder, CurrencyCreateOst, CbDataPravoRKO, EmployeePravoRKO
 from core.utils.commands import get_commands, get_commands_admins
 from core.utils.states import AddPhone, StatesCreateEmployee, HistoryOrdersShop, CreateShop, UpdateCurrencyPriceAll, \
     Contact, OneShopCurrency, HistoryOrdersUser, HistoryOrdersAll, \
@@ -98,7 +98,8 @@ async def start():
     dp.message.register(contact.get_contact, F.contact)
     # Создание нового сотрудника
     dp.callback_query.register(createEmployee.select_admin, CreateEmployee.filter())
-    dp.callback_query.register(createEmployee.name, EmployeeAdmin.filter())
+    dp.callback_query.register(createEmployee.select_pravoRKO, EmployeeAdmin.filter())
+    dp.callback_query.register(createEmployee.name, EmployeePravoRKO.filter())
     dp.message.register(createEmployee.final_create_empliyee, StatesCreateEmployee.name)
 
     # Главное меню

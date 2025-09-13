@@ -192,6 +192,14 @@ async def end_period(message: Message, state: FSMContext, bot: Bot):
 
         start_date = data['start_period'].replace('-', '.')
         end_date = message.text.replace('-', '.')
+
+        start_date_datetime = datetime.datetime.strptime(start_date, '%Y.%m.%d')
+        end_date_datetime = datetime.datetime.strptime(end_date, '%Y.%m.%d')
+        if start_date_datetime < end_date_datetime - datetime.timedelta(days=30):
+            log.error("start_date + datetime.timedelta(days=30) > end_date_datetime")
+            await message.answer(texts.error_head + "Выбранный период превышает 30 дней\nПопробуйте снова")
+            return
+
         if re.findall('HistoryOrdersShop', str(await state.get_state())):
             shop_info = await get_shop_by_id(data["shop_id"])
             file_name = f"{'_'.join(shop_info.name.split())}__{start_date}|{end_date}"
@@ -260,8 +268,8 @@ async def history_shop_orders_by_days(call: CallbackQuery, state: FSMContext, bo
     log.info(f'История продаж магазина за {callback_data.days} дней')
     data = await state.get_data()
     if callback_data.days < 0:
-        start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=1 + abs(callback_data.days)), '%Y-%m-%d')
-        end_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=1), '%Y-%m-%d')
+        start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=abs(callback_data.days)), '%Y-%m-%d')
+        end_date = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
     else:
         start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
         end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')
@@ -279,8 +287,8 @@ async def history_user_orders_by_days(call: CallbackQuery, state: FSMContext, bo
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     log.info(f'История продаж пользователя за {callback_data.days} дней')
     if callback_data.days < 0:
-        start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=1 + abs(callback_data.days)), '%Y-%m-%d')
-        end_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=1), '%Y-%m-%d')
+        start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=abs(callback_data.days)), '%Y-%m-%d')
+        end_date = datetime.datetime.strftime(datetime.datetime.now(), '%Y-%m-%d')
     else:
         start_date = datetime.datetime.strftime(datetime.datetime.now() - datetime.timedelta(days=callback_data.days), '%Y-%m-%d')
         end_date = datetime.datetime.strftime(datetime.datetime.now() + datetime.timedelta(days=1), '%Y-%m-%d')

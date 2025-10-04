@@ -17,7 +17,7 @@ def getKeyboard_start():
     keyboard.button(text='Создать магазин', callback_data='startCreateShop')
     keyboard.button(text='Создать контрагента', callback_data='startCreateKontrAgent')
     keyboard.button(text='Операции с магазином', callback_data='shops_operations')
-    keyboard.button(text='Выдача наличных', callback_data='send_cash')
+    # keyboard.button(text='Выдача наличных', callback_data='send_cash')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 

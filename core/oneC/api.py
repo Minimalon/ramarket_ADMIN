@@ -235,10 +235,24 @@ class Api:
         async with aiohttp.ClientSession() as session:
             async with session.post(f"{self.adress}/CreateRKO", data=data) as response:
                 return response, await response.text()
-
-    async def create_ostatok(self, rko: CreateOstatok) -> [ClientResponse, str]:
+    async def create_ostatok(self, shop: str, amount: str, currency: str, currency_price: str, user: str):
+        """
+        Отправляем деньги магазину
+        :param shop: ID магазина
+        :param amount: Количество денег
+        :param currency: Валюта
+        :param user: ID юзера
+        :return:
+        """
+        data = json.dumps({
+            "Shop": shop,
+            "Amount": amount,
+            "Currency": currency,
+            "User": user,
+            "KursPrice": currency_price,
+        })
         async with aiohttp.ClientSession() as session:
-            async with session.post(f"{self.adress}/CreateRKO", data=rko.model_dump_json(by_alias=True)) as response:
+            async with session.post(f"{self.adress}/CreateOst", data=data) as response:
                 return response, await response.text()
 
     async def get_balance_shop(self, shop_id: str) -> [ClientResponse, dict]:

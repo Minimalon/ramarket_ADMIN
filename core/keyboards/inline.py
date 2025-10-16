@@ -17,7 +17,7 @@ def getKeyboard_start():
     keyboard.button(text='Создать магазин', callback_data='startCreateShop')
     keyboard.button(text='Создать контрагента', callback_data='startCreateKontrAgent')
     keyboard.button(text='Операции с магазином', callback_data='shops_operations')
-    # keyboard.button(text='Выдача наличных', callback_data='send_cash')
+    keyboard.button(text='Выдача наличных', callback_data='send_cash')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
@@ -334,9 +334,22 @@ def kb_send_cash_select_currency():
         keyboard.button(text=currency, callback_data=SendCashCurrency(currency=currency))
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
+def kb_create_ostatok_select_currency():
+    keyboard = InlineKeyboardBuilder()
+    for currency in ['USD', 'TRY', 'EUR','USDT', 'RUB']:
+        keyboard.button(text=currency, callback_data=CreateOstatokCurrency(currency=currency))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
 
 
 def kb_send_cash_select_user(users: list[User]):
+    keyboard = InlineKeyboardBuilder()
+    for user in users:
+        keyboard.button(text=user.name, callback_data=SendCashUser(id=user.id))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+def kb_create_ostatok_select_user(users: list[User]):
     keyboard = InlineKeyboardBuilder()
     for user in users:
         keyboard.button(text=user.name, callback_data=SendCashUser(id=user.id))
@@ -351,10 +364,23 @@ def kb_send_cash_select_shop(shops):
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 
+def kb_create_ostatok_select_shop(shops):
+    keyboard = InlineKeyboardBuilder()
+    for shop in shops:
+        keyboard.button(text=shop.name, callback_data=CreateOstatokShop(shop_id=shop.code))
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
 
 def kb_send_cash_confirm():
     keyboard = InlineKeyboardBuilder()
     keyboard.button(text='Отправить ✅', callback_data='send_cash_confirm')
+    keyboard.adjust(1, repeat=True)
+    return keyboard.as_markup()
+
+def kb_create_ostatok_confirm():
+    keyboard = InlineKeyboardBuilder()
+    keyboard.button(text='Отправить ✅', callback_data='create_ostatok_confirm')
     keyboard.adjust(1, repeat=True)
     return keyboard.as_markup()
 

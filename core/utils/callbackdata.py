@@ -107,12 +107,21 @@ class DeleteOrder(CallbackData, prefix='delete_order'):
 class SendCashCurrency(CallbackData, prefix='send_cash_currency'):
     currency: str
 
+class CreateOstatokCurrency(CallbackData, prefix='create_ostatok_currency'):
+    currency: str
+
 
 class SendCashUser(CallbackData, prefix='send_cash_user'):
     id: str
 
+class CreateOstatokUser(CallbackData, prefix='create_ostatok_user'):
+    id: str
+
 
 class SendCashShop(CallbackData, prefix='send_cash_shop'):
+    shop_id: str
+
+class CreateOstatokShop(CallbackData, prefix='create_ostatok_shop'):
     shop_id: str
 
 class CurrencyCreateOst(CallbackData, prefix='currency_createOst'):

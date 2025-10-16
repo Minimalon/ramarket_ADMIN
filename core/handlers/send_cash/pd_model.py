@@ -16,3 +16,17 @@ class SendCash(BaseModel):
             "Currency": self.currency,
             "User": self.user.id
         }
+
+class CreateOstatok(BaseModel):
+    shop_id: str = ''
+    currency: str = ''
+    amount: str = 0
+    user: User | None = None
+
+    def send_to_1c(self):
+        return {
+            "Shop": self.shop_id,
+            "Amount": self.amount,
+            "Currency": self.currency,
+            "User": self.user.id
+        }

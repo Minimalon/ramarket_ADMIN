@@ -73,6 +73,12 @@ class SendCashState(StatesGroup):
     user = State()
     amount = State()
 
+class CreateOstatokState(StatesGroup):
+    currency = State()
+    shop = State()
+    user = State()
+    amount = State()
+
 class StateCreateOstatok(StatesGroup):
     amount = State()
     currency = State()

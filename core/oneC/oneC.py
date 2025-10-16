@@ -285,6 +285,11 @@ async def get_user_by_id(user_id: str) -> User:
     for user in all_users:
         if user['id'] == user_id:
             return User.model_validate_json(json.dumps(user))
+async def get_user_by_phone(phone_number: str) -> User:
+    response, all_users = await api.get_all_users()
+    for user in all_users:
+        if user['Телефон'] == phone_number:
+            return User.model_validate_json(json.dumps(user))
 
 
 if __name__ == '__main__':

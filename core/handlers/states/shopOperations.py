@@ -73,14 +73,20 @@ async def select_shop_operations(call: CallbackQuery, callback_data: Shops, stat
     log = logger.bind(name=call.message.chat.first_name, chat_id=call.message.chat.id)
     await state.update_data(shop_id=callback_data.code, org_id=callback_data.org_id)
     log.info(f'Выбрал магазин {callback_data.code}')
+    db_user = await get_client_info(call.message.chat.id)
+    oneC_user = await get_user_by_phone(db_user.phone_number)
     r, a = await api.get_balance_shop(callback_data.code)
+    txt = (
+        f'Выберите нужную операцию\n\n'
+        f'Текущий остаток: {a[0]["СостояниеРасчетов"]} {a[0]["Валюта"]}' if oneC_user.pravoRKO == 'Да' else ''
+    )
     if len(a) == 0:
-        await call.message.edit_text('Выберите нужную операцию',
+        await call.message.edit_text(txt,
                                      reply_markup=getKeyboard_shops_operations(
                                          create_ostatok=True
                                      ))
     else:
-        await call.message.edit_text('Выберите нужную операцию\nОстаток у магазина задан✅',
+        await call.message.edit_text(f'{txt}\nОстаток у магазина задан✅',
                                      reply_markup=getKeyboard_shops_operations(
                                          create_ostatok=True
                                      ))

@@ -76,10 +76,16 @@ async def select_shop_operations(call: CallbackQuery, callback_data: Shops, stat
     db_user = await get_client_info(call.message.chat.id)
     oneC_user = await get_user_by_phone(db_user.phone_number)
     r, a = await api.get_balance_shop(callback_data.code)
-    txt = (
-        f'Выберите нужную операцию\n\n'
-        f'Текущий остаток: {a[0]["СостояниеРасчетов"]} {a[0]["Валюта"]}' if oneC_user.pravoRKO == 'Да' else ''
-    )
+    if a:
+        txt = (
+            f'Выберите нужную операцию\n\n'
+            f'Текущий остаток: {a[0]["СостояниеРасчетов"]} {a[0]["Валюта"]}' if oneC_user.pravoRKO == 'Да' else ''
+        )
+    else:
+        txt = (
+          f'Выберите нужную операцию\n\n'
+          f'Текущий остаток: 0' if oneC_user.pravoRKO == 'Да' else ''
+        )
     if len(a) == 0:
         await call.message.edit_text(txt,
                                      reply_markup=getKeyboard_shops_operations(

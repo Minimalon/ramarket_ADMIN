@@ -84,7 +84,7 @@ async def select_shop_operations(call: CallbackQuery, callback_data: Shops, stat
     else:
         txt = (
           f'Выберите нужную операцию\n\n'
-          f'Текущий остаток: 0' if oneC_user.pravoRKO == 'Да' else ''
+          f'Остаток не создан❌' if oneC_user.pravoRKO == 'Да' else ''
         )
     if len(a) == 0:
         await call.message.edit_text(txt,

@@ -86,10 +86,8 @@ async def select_shop_operations(call: CallbackQuery, callback_data: Shops, stat
                                          create_ostatok=True
                                      ))
     else:
-        txt = (
-            f'Выберите нужную операцию\n\n'
-            f'Текущий остаток: {a[0]["СостояниеРасчетов"]} {a[0]["Валюта"]}' if oneC_user.pravoRKO == 'Да' else ''
-        )
+        txt = f'Выберите нужную операцию\n\n'
+        txt += f'Текущий остаток: {a[0]["СостояниеРасчетов"]} {a[0]["Валюта"]}' if oneC_user.pravoRKO == 'Да' else ''
         await call.message.edit_text(f'{txt}',
                                      reply_markup=getKeyboard_shops_operations(
                                          create_ostatok=True
